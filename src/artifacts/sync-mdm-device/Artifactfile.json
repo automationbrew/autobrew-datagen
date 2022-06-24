@@ -1,0 +1,26 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/azure-devtestlab/master/schemas/2016-11-28/dtlArtifacts.json",
+  "title": "Sync MDM device",
+  "publisher": "Isaiah Williams",
+  "description": "Performs the device synchronization operation for a device that is managed by Microsoft Endpoint Manager.",
+  "tags": [
+    "Device"
+  ],
+  "iconUri": "https://www.powershellgallery.com/Content/Images/packageDefaultIcon.png",
+  "targetOsType": "Windows",
+  "parameters": {
+    "username": {
+      "description": "Username for a user from the Azure Active Directory tenant where the device is registered.",
+      "displayName": "Username",
+      "type": "string"
+    },
+    "password": {
+      "description": "Password for a user from the Azure Active Directory tenant where the device is registered.",
+      "displayName": "Password",
+      "type": "securestring"
+    }
+  },
+  "runCommand": {
+    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./InvokeDeviceSync.ps1 -Username ''', parameters('username'), ''' -Value ''', parameters('password'), '''\"')]"
+  }
+}

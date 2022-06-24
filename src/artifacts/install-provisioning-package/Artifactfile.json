@@ -1,0 +1,31 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/azure-devtestlab/master/schemas/2016-11-28/dtlArtifacts.json",
+  "title": "Install provisioning package",
+  "publisher": "Isaiah Williams",
+  "description": "Generates a provisioning package and installs it on the device.",
+  "tags": [
+    "Device"
+  ],
+  "iconUri": "https://www.powershellgallery.com/Content/Images/packageDefaultIcon.png",
+  "targetOsType": "Windows",
+  "parameters": {
+    "bprtName": {
+      "description": "The name for the bulk primary refresh token to be obtained from Key Vault and injected into the provisioning package.",
+      "displayName": "Refresh token name",
+      "type": "string"
+    },
+    "namePrefix": {
+      "description": "The prefix for the DNS computer name that will be assigned to the virtual machine.",
+      "displayName": "Name prefix", 
+      "type": "string"
+    },
+    "vaultSecret": {
+      "description": "The secret for the Azure Active Directory application used to access Key Vault.",
+      "displayName": "Vault secret",
+      "type": "securestring"
+    }
+  },
+  "runCommand": {
+    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./InstallProvisioningPackage.ps1 -BprtName ', parameters('bprtName'), ' -NamePrefix ', parameters('namePrefix'), ' -VaultSecret ', parameters('vaultSecret'), '\"')]"
+  }
+}

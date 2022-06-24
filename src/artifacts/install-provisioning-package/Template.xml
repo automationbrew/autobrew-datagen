@@ -1,0 +1,30 @@
+<WindowsCustomizations>
+    <PackageConfig xmlns="urn:schemas-Microsoft-com:Windows-ICD-Package-Config.v1.0">
+        <ID>{0ce99dd5-d6af-4eb7-b5f2-da80bbac242f}</ID>
+        <Name>Automation Brew</Name>
+        <Version>1.0</Version>
+        <OwnerType>OEM</OwnerType>
+        <Rank>0</Rank>
+        <Notes></Notes>
+    </PackageConfig>
+    <Settings xmlns="urn:schemas-microsoft-com:windows-provisioning">
+        <Customizations>
+            <Common>
+                <Accounts>
+                    <Azure>
+                        <Authority>https://login.microsoftonline.com/common</Authority>
+                        <BPRT></BPRT>
+                    </Azure>
+                </Accounts>
+                <DevDetail>
+                    <DNSComputerName></DNSComputerName>
+                </DevDetail>
+                <OOBE>
+                    <Desktop>
+                        <HideOobe>True</HideOobe>
+                    </Desktop>
+                </OOBE>
+            </Common>
+        </Customizations>
+    </Settings>
+</WindowsCustomizations>
