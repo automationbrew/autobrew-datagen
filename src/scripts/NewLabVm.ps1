@@ -1,44 +1,52 @@
 [CmdletBinding()]
 param(
-    [Parameter(HelpMessage = 'The identifier for the Azure Active Directory application used by the install provisioning package artifact to access Key Vault.', Mandatory = $true)]
-    [ValidateNotNullOrEmpty()]
-    [string]$ApplicationId, 
-
-    [Parameter(HelpMessage = 'The key that represents an external relationship.', Mandatory = $true)]
+    [Parameter(HelpMessage = 'The key used to establish a foreign relationship. This value will be added as a tag on the virtual machine.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
     [string]$ForeignKey, 
 
-    [Parameter(HelpMessage = 'The name for instance of Azure DevTest Labs.', Mandatory = $true)]
+    [Parameter(HelpMessage = 'The identifier for the application that will be used by the install provisioning package artifact to access Key Vault.', Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [string]$KeyVaultClientId, 
+
+    [Parameter(HelpMessage = 'The name for the resource group that contains the instance of Key Vault.', Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [string]$KeyVaultName,
+
+    [Parameter(HelpMessage = 'The name for the resource group that contains the instance of Key Vault.', Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [string]$KeyVaultResourceGroup,
+
+    [Parameter(HelpMessage = 'The name for the secret that will be used by the install provisioning package artifact to access Key Vault.', Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [string]$KeyVaultSecretName,
+
+    [Parameter(HelpMessage = 'The identifier for the Azure Active Directory tenant associated with the instance of Key Vault.', Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [string]$KeyVaultTenant,
+
+    [Parameter(HelpMessage = 'The name for the instance of Azure DevTest Labs.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
     [string]$LabName,
-
-    [Parameter(HelpMessage = 'The name for the virtual network used by the instance of Azure DevTest Labs.', Mandatory = $true)]
-    [ValidateNotNullOrEmpty()]
-    [string]$LabVnetName,
 
     [Parameter(HelpMessage = 'The prefix for the DNS computer name that will be assigned to the virtual machine.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
     [string]$NamePrefix,
 
-    [Parameter(HelpMessage = 'The name for the resource group where the deployment should be created.', Mandatory = $true)]
+    [Parameter(HelpMessage = 'The name for the Key Vault secret that contains the password for the virtual machine administrator.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
-    [string]$ResourceGroupName,
+    [string]$PwdSecretName,
 
-    [Parameter(HelpMessage = 'The for the Key Vault secret that contains the application secret value used by the install provisioning package artifact.', Mandatory = $true)]
+    [Parameter(HelpMessage = 'The identifier for the Azure subscription.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
-    [string]$SecretName,
+    [string]$subscriptionId,
 
-    [Parameter(HelpMessage = 'The identifier for the Azure Active Directory application where the virtual machine will be registered by the install provisioning package artifact.', Mandatory = $true)]
+    [Parameter(HelpMessage = 'The identifier for the Azure Active Directory tenant where the virtual machine will be registered.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
-    [string]$Tenant,
+    [string]$Tenant
 
-    [Parameter(HelpMessage = 'The name for the instance of Azure Key Vault that will be used by the install provisioning package artifact to access Key Vault.', Mandatory = $true)]
+    [Parameter(HelpMessage = 'The name for the virtual network.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
-    [string]$VaultName,
-
-    [Parameter(HelpMessage = 'The identifier for the Azure Active Directory tenant that will be used by the install provisioning package artifact to access Key Vault.', Mandatory = $true)]
-    [ValidateNotNullOrEmpty()]
-    [string]$VaultTenant
+    [string]$VnetName
 )
 
 # Note: Because the $ErrorActionPreference is "Stop", this script will stop on first failure.  
@@ -70,21 +78,20 @@ trap
 
 try 
 {
-    $password = New-AbRandomPassword -Length 24 -NumberOfNonAlphanumericCharacters 6
-    $vaultSecret = Get-AzKeyVaultSecret -VaultName $VaultName -Name $SecretName
-
-    $parameters = @{ 
-        applicationId  = $ApplicationId
-        foreignKey     = $ForeignKey
-        password       = $password
-        labName        = $LabName
-        labVnetName    = $LabVnetName
-        namePrefix     = $NamePrefix
-        tenant         = $Tenant
-        vaultName      = $VaultName
-        vaultSecret    = $vaultSecret.SecretValue
-        vaultTenant    = $VaultTenant
-        vmResourceName = -Join ((48..57) + (97..122) | Get-Random -Count 10 | ForEach-Object {[char]$_})
+    $parameters = @{
+        foreignKey            = $ForeignKey
+        keyVaultClientId      = $KeyVaultClientId
+        keyVaultName          = $KeyVaultName
+        keyVaultResourceGroup = $KeyVaultResourceGroup
+        keyVaultSecretName    = $KeyVaultSecretName
+        keyVaultTenant        = $KeyVaultTenant
+        labName               = $LabName
+        namePrefix            = $NamePrefix
+        pwdSecretName         = $PwdSecretName
+        subscriptionId        = $SubscriptionId
+        tenant                = $Tenant
+        vmResourceName        = -Join ((48..57) + (97..122) | Get-Random -Count 10 | ForEach-Object {[char]$_})
+        vnetName              = $VnetName
     }
 
     New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName `
