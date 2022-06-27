@@ -94,7 +94,7 @@ function Get-DeviceArtifactParameter([string]$Activity, $Resource)
         return $null
     }
 
-    $refreshToken = Get-AzKeyVaultSecret -SecretName "rt-$($Resource.Environment)" -VaultName $env:KeyVaultName
+    $refreshToken = Get-AzKeyVaultSecret -SecretName $Resource.ForeignKey -VaultName $env:KeyVaultName
 
     $aadToken   = New-AbAccessToken -ApplicationId $env:ApplicationId -RefreshToken $refreshToken.SecretValue -Scopes 'https://graph.windows.net/.default' -Tenant $Resource.Tenant
     $graphToken = New-AbAccessToken -ApplicationId $env:ApplicationId -RefreshToken $refreshToken.SecretValue -Scopes 'https://graph.microsoft.com/.default' -Tenant $Resource.Tenant
