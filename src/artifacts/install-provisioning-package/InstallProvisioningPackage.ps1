@@ -1,28 +1,28 @@
 [CmdletBinding()]
 param(
-    [Parameter(HelpMessage = 'The identifier for the Azure Active Directory application used when accessing Key Vault.', Mandatory = $true)]
+    [Parameter(HelpMessage = 'The identifier for the application that will be used to access Key Vault.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
-    [string]$ApplicationId, 
+    [string]$KeyVaultClientId, 
+
+    [Parameter(HelpMessage = 'The name for the resource group that contains the instance of Key Vault.', Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [string]$KeyVaultName,
+
+    [Parameter(HelpMessage = 'The secret for the application used to access Key Vault.', Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [string]$KeyVaultSecret,
+
+    [Parameter(HelpMessage = 'The identifier for the Azure Active Directory tenant associated with the instance of Key Vault.', Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [string]$KeyVaultTenant,
 
     [Parameter(HelpMessage = 'The prefix for the DNS computer name that will be assigned to the virtual machine.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
     [string]$NamePrefix,
 
-    [Parameter(HelpMessage = 'The identifier for the Azure Active Directory tenant where the device will be registered.', Mandatory = $true)]
+    [Parameter(HelpMessage = 'The identifier for the Azure Active Directory tenant where the virtual machine will be registered.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
-    [string]$Tenant,
-
-    [Parameter(HelpMessage = 'The name for the instance of Key Vault.', Mandatory = $true)]
-    [ValidateNotNullOrEmpty()]
-    [string]$VaultName,
-
-    [Parameter(HelpMessage = 'The secret for the Azure Active Directory application used when accessing Key Vault.', Mandatory = $true)]
-    [ValidateNotNullOrEmpty()]
-    [string]$VaultSecret,
-
-    [Parameter(HelpMessage = 'The identifier for the Azure Active Directory tenant used when accessing Key Vault.', Mandatory = $true)]
-    [ValidateNotNullOrEmpty()]
-    [string]$VaultTenant
+    [string]$Tenant
 )
 
 # Note: Because the $ErrorActionPreference is "Stop", this script will stop on first failure.  
@@ -82,17 +82,17 @@ function New-ProvisioningPackage([string]$Arguments, [string]$WorkingDirectory)
 
 function Write-CustomizationXml([string]$WorkingDirectory)
 {
-    # Create an instance of a secure string where the value is based upon the VaultSecret parameter.
-    $secureVaultSecret = ConvertTo-SecureString -String $VaultSecret -AsPlainText -Force
+    # Create an instance of a secure string where the value is based upon the KeyVaultSecret parameter.
+    $secureKeyVaultSecret = ConvertTo-SecureString -String $KeyVaultSecret -AsPlainText -Force
 
     # Construct a new PSCredential object that will be used to establish a connection to Microsoft Azure.
-    $credential = New-Object System.Management.Automation.PSCredential($ApplicationId, $secureVaultSecret)
+    $credential = New-Object System.Management.Automation.PSCredential($KeyVaultClientId, $secureKeyVaultSecret)
 
     # Establish a connection to Microsoft Azure using the constructed credentials.
-    Connect-AzAccount -Credential $credential -ServicePrincipal -Tenant $VaultTenant | Out-Null
+    Connect-AzAccount -Credential $credential -ServicePrincipal -Tenant $KeyVaultTenant | Out-Null
 
     # Obtain the bulk primary refresh token value from Key Vault.
-    [string]$bprtValue = Get-AzKeyVaultSecret -VaultName $VaultName -Name $Tenant -AsPlainText
+    [string]$bprtValue = Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name $Tenant -AsPlainText
 
     # Read the content of the template file that will be used to generate the provisioning package. 
     [xml]$content = Get-Content -Path "$PSScriptRoot\Template.xml" 
