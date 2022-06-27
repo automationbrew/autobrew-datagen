@@ -69,7 +69,7 @@ try
         $resource = [PSCustomObject]@{ 
             ComputeId    = $_.Properties.ComputeId 
             ComputerName = $instanceView.Properties.InstanceView.ComputerName
-            Environment  = $_.Tags.Environment
+            ForeignKey   = $_.Tags.ForeignKey
             PowerState   = $_.Properties.LastKnownPowerState 
             ResourceId   = $_.ResourceId
             Tenant       = $_.Tags.Tenant

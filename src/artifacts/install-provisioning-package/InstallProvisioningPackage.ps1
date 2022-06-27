@@ -1,39 +1,28 @@
-<#
-    .SYNOPSIS
-        Installs a provisioning package that is generated using the specified parameters.
-    .PARAMETER ApplicationId
-        The identifier for the Azure Active Directory application used to access Key Vault.
-    .PARAMETER BprtName
-        The name of the bulk primary refresh token to be obtained from Key Vault.
-    .PARAMETER NamePrefix
-        The prefix for the DNS computer name that will be assigned to the virtual machine.
-    .PARAMETER Tenant
-        The identifier for the Azure Active Directory tenant where the application was created to access Key Vault.
-    .PARAMETER VaultName
-        The name for the instance of Key Vault.
-    .PARAMETER VaultSecret
-        The secret for the Azure Active Directory application used to access Key Vault.
-#>
-
 [CmdletBinding()]
 param(
+    [Parameter(HelpMessage = 'The identifier for the Azure Active Directory application used when accessing Key Vault.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
     [string]$ApplicationId, 
 
-    [ValidateNotNullOrEmpty()]
-    [string]$BprtName,
-
+    [Parameter(HelpMessage = 'The prefix for the DNS computer name that will be assigned to the virtual machine.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
     [string]$NamePrefix,
 
+    [Parameter(HelpMessage = 'The identifier for the Azure Active Directory tenant where the device will be registered.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
     [string]$Tenant,
 
+    [Parameter(HelpMessage = 'The name for the instance of Key Vault.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
     [string]$VaultName,
 
+    [Parameter(HelpMessage = 'The secret for the Azure Active Directory application used when accessing Key Vault.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
-    [string]$VaultSecret
+    [string]$VaultSecret,
+
+    [Parameter(HelpMessage = 'The identifier for the Azure Active Directory tenant used when accessing Key Vault.', Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [string]$VaultTenant
 )
 
 # Note: Because the $ErrorActionPreference is "Stop", this script will stop on first failure.  
@@ -100,10 +89,10 @@ function Write-CustomizationXml([string]$WorkingDirectory)
     $credential = New-Object System.Management.Automation.PSCredential($ApplicationId, $secureVaultSecret)
 
     # Establish a connection to Microsoft Azure using the constructed credentials.
-    Connect-AzAccount -Credential $credential -ServicePrincipal -Tenant $Tenant | Out-Null
+    Connect-AzAccount -Credential $credential -ServicePrincipal -Tenant $VaultTenant | Out-Null
 
     # Obtain the bulk primary refresh token value from Key Vault.
-    [string]$bprtValue = Get-AzKeyVaultSecret -VaultName $VaultName -Name $BprtName -AsPlainText
+    [string]$bprtValue = Get-AzKeyVaultSecret -VaultName $VaultName -Name $Tenant -AsPlainText
 
     # Read the content of the template file that will be used to generate the provisioning package. 
     [xml]$content = Get-Content -Path "$PSScriptRoot\Template.xml" 
