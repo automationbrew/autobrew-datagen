@@ -37,7 +37,7 @@ function Deploy-Artifact([string]$Activity, $Resource)
         $response = Invoke-AzResourceAction -ResourceId $Resource.ResourceId -Action 'start' -ApiVersion '2018-09-15' -Force
     }
 
-    if ($Resource.PowerState -ne 'Running' -or $response.Status -ne 'Succeeded') 
+    if ($Resource.PowerState -ne 'Running' -or ($null -ne $response -and $response.Status -ne 'Succeeded')) 
     {
         throw "$($Resource.ResourceId) is not in a valid state to continue."
     }
@@ -74,7 +74,8 @@ function Deploy-Artifact([string]$Activity, $Resource)
 
 function Get-DeviceArtifact([string]$Activity, $Resource)
 {
-    $artifactId = '/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.DevTestLab/labs/{2}/artifactSources/{3}/artifacts/{4}' -f $AzureSubscription, $ResourceGroupName, $DevTestLabName, $PrivateRepoName, $Activity
+    $artifactId = '/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.DevTestLab/labs/{2}/artifactSources/{3}/artifacts/{4}' `
+        -f $env:AzureSubscription, $evn:ResourceGroupName, $env:LabName, 'automationbrew', $Activity
 
     if($Activity -eq 'sync-mdm-device')
     {
@@ -99,7 +100,7 @@ function Get-DeviceArtifactParameter([string]$Activity, $Resource)
     $aadToken   = New-AbAccessToken -ApplicationId $env:ApplicationId -RefreshToken $refreshToken.SecretValue -Scopes 'https://graph.windows.net/.default' -Tenant $Resource.Tenant
     $graphToken = New-AbAccessToken -ApplicationId $env:ApplicationId -RefreshToken $refreshToken.SecretValue -Scopes 'https://graph.microsoft.com/.default' -Tenant $Resource.Tenant
 
-    Connect-AzureAD -AadAccessToken $aadToken -AccountId $graphToken.Username -MsAccessToken $graphToken.AccessToken -Tenant $Resource.Tenant 
+    Connect-AzureAD -AadAccessToken $aadToken.AccessToken -AccountId $graphToken.Username -MsAccessToken $graphToken.AccessToken -Tenant $Resource.Tenant 
     Connect-MgGraph -AccessToken  $graphToken.AccessToken 
 
     Select-MgProfile -Name 'beta'

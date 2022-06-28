@@ -123,7 +123,7 @@ resource devtestlab 'Microsoft.DevTestLab/labs@2018-10-15-preview' = {
 
 resource devtestlab_artifactsource 'microsoft.devtestlab/labs/artifactsources@2018-09-15' = {
   parent: devtestlab
-  name: 'auomationbrew'
+  name: 'automationbrew'
   properties: {
     branchRef: 'main'
     displayName: 'Automation Brew'

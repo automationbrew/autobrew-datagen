@@ -43,7 +43,7 @@ function Join-DeviceActivity($Tags)
         $activity = $activity, $Tags.Weekly -Join ','
     }
 
-    $dateForMonthlyActivity = (1..21 | ForEach-Object {([datetime](Get-Date).ToString('MM/01/yyyy')).AddDays($_) 
+    $dateMonthly = (1..21 | ForEach-Object {([datetime](Get-Date).ToString('MM/01/yyyy')).AddDays($_) 
         | Where-Object {$_.DayOfWeek -eq 'Wednesday'}})[1]
 
     if((Get-Date).ToString('MM/dd/yyyy') -eq $dateMonthly.ToString('MM/dd/yyyy')) 

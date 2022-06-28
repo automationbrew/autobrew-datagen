@@ -12,17 +12,9 @@ param(
     [ValidateNotNullOrEmpty()]
     [string]$KeyVaultName,
 
-    [Parameter(HelpMessage = 'The name for the resource group that contains the instance of Key Vault.', Mandatory = $true)]
-    [ValidateNotNullOrEmpty()]
-    [string]$KeyVaultResourceGroup,
-
     [Parameter(HelpMessage = 'The name for the secret that will be used by the install provisioning package artifact to access Key Vault.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
     [string]$KeyVaultSecretName,
-
-    [Parameter(HelpMessage = 'The identifier for the Azure Active Directory tenant associated with the instance of Key Vault.', Mandatory = $true)]
-    [ValidateNotNullOrEmpty()]
-    [string]$KeyVaultTenant,
 
     [Parameter(HelpMessage = 'The name for the instance of Azure DevTest Labs.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
@@ -36,13 +28,17 @@ param(
     [ValidateNotNullOrEmpty()]
     [string]$PwdSecretName,
 
+    [Parameter(HelpMessage = 'The name for the resource group.', Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [string]$ResourceGroupName,
+
     [Parameter(HelpMessage = 'The identifier for the Azure subscription.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
-    [string]$subscriptionId,
+    [string]$SubscriptionId,
 
     [Parameter(HelpMessage = 'The identifier for the Azure Active Directory tenant where the virtual machine will be registered.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
-    [string]$Tenant
+    [string]$Tenant,
 
     [Parameter(HelpMessage = 'The name for the virtual network.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
@@ -82,9 +78,8 @@ try
         foreignKey            = $ForeignKey
         keyVaultClientId      = $KeyVaultClientId
         keyVaultName          = $KeyVaultName
-        keyVaultResourceGroup = $KeyVaultResourceGroup
+        keyVaultResourceGroup = $ResourceGroupName
         keyVaultSecretName    = $KeyVaultSecretName
-        keyVaultTenant        = $KeyVaultTenant
         labName               = $LabName
         namePrefix            = $NamePrefix
         pwdSecretName         = $PwdSecretName
