@@ -79,16 +79,8 @@ resource virtualMachine 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' =
         ]
       }
       {
-        artifactId: resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', labName, 'auomationbrew/install-provisioning-package')
+        artifactId: resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', labName, 'automationbrew', 'install-provisioning-package')
         parameters: [
-          {
-            name: 'bprtSecretName'
-            value: tenant
-          }
-          {
-            name: 'namePrefix'
-            value: namePrefix
-          }
           {
             name: 'keyVaultClientId'
             value: keyVaultClientId
@@ -104,6 +96,14 @@ resource virtualMachine 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' =
           {
             name: 'keyVaultTenant'
             value: keyVaultTenant
+          }
+          {
+            name: 'namePrefix'
+            value: namePrefix
+          }
+          {
+            name: 'tenant'
+            value: tenant
           }
         ]
       }
@@ -128,7 +128,7 @@ resource virtualMachine 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' =
     foreignKey: foreignKey
     monthly: 'new-lsass-dump,sync-github-malware'
     tenant: tenant
-    weekly: 'start-defenderantivirus-scan'
+    weekly: 'start-defenderav-scan'
     AutoStartOn: 'true'
   }
 }

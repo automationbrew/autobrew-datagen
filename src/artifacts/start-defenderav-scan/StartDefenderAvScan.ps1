@@ -1,11 +1,8 @@
-<#
-    .SYNOPSIS
-        Starts a full scan for malware and threats using Microsoft Defender Antivirus.
-#>
 [CmdletBinding()]
 param(   
-    [ValidateNotNullOrEmpty()]
-    [string] $ScanType
+    [Parameter(HelpMessage = 'The type of scan that Microsoft Defender Antivirus will perform.', Mandatory = $false)]
+    [ValidateSet('FullScan', 'QuickScan')]
+    [string]$ScanType = 'FullScan' 
 )
 
 # Note: Because the $ErrorActionPreference is "Stop", this script will stop on first failure.  
@@ -37,7 +34,7 @@ trap
 
 try 
 {
-    Start-MpScan -ScanType FullScan
+    Start-MpScan -ScanType $ScanType
 
     Write-Host "`nThe artifact was applied successfully.`n"  
 }
