@@ -49,7 +49,7 @@ function Deploy-Artifact([string]$Activity, $Resource)
 
     $Activity.Split(',') | ForEach-Object {
         $artifact  = @()
-        $artifact += Get-DeviceArtifact -Activity $_ -Resource $Resource -ErrorAction SilentlyContinue -ErrorVariable deviceArtifactError
+        $artifact += Get-DeviceArtifact -Activity $_ -Resource $Resource -ErrorAction 'Continue' -ErrorVariable deviceArtifactError
 
         if($null -ne $deviceArtifactError)
         {
@@ -61,7 +61,7 @@ function Deploy-Artifact([string]$Activity, $Resource)
         # if there is an exception when applying any of the artifacts in the request. To contend with 
         # this possiblity a single artifact will be included in each request.
 
-        $response = Invoke-AzResourceAction -Parameters  @{artifacts = $artifact} -ResourceId $Resource.ResourceId -Action 'applyArtifacts' -ApiVersion '2018-09-15' -Force -ErrorAction SilentlyContinue -ErrorVariable applyArtifactError
+        $response = Invoke-AzResourceAction -Parameters  @{artifacts = $artifact} -ResourceId $Resource.ResourceId -Action 'applyArtifacts' -ApiVersion '2018-09-15' -Force -ErrorAction 'Continue' -ErrorVariable applyArtifactError
     
         if($response.Status -ne 'Succeeded' -or $null -ne $applyArtifactError)
         {
@@ -75,7 +75,7 @@ function Deploy-Artifact([string]$Activity, $Resource)
 function Get-DeviceArtifact([string]$Activity, $Resource)
 {
     $artifactId = '/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.DevTestLab/labs/{2}/artifactSources/{3}/artifacts/{4}' `
-        -f $env:AzureSubscription, $evn:ResourceGroupName, $env:LabName, 'automationbrew', $Activity
+        -f $env:AzureSubscription, $env:ResourceGroupName, $env:LabName, 'automationbrew', $Activity
 
     if($Activity -eq 'sync-mdm-device')
     {
@@ -133,9 +133,28 @@ function Get-DeviceArtifactParameter([string]$Activity, $Resource)
     return $parameters;
 }
 
+function Initialize-Module([string]$Module)
+{
+    if(!(Get-Module $Module)) 
+    {
+        if($Module -eq 'AzureAD')
+        {
+            Import-Module $Module -UseWindowsPowerShell
+        }
+        else 
+        {
+            Import-Module $Module
+        }
+    }
+}
+
 try
 {
-    Import-Module AzureAD -UseWindowsPowerShell
+    Initialize-Module -Module Ab
+    Initialize-Module -Module AzureAD
+    Initialize-Module -Module Microsoft.Graph.Authentication
+    Initialize-Module -Module Microsoft.Graph.DeviceManagement
+
     Set-AzContext -Subscription $env:AzureSubscription -Tenant $env:AzureTenant
     
     if($context.Category -eq 'device')
