@@ -1,4 +1,4 @@
-param($context)
+param($Context)
 
 # Note: Because the $ErrorActionPreference is "Stop", this script will stop on first failure.  
 #       This is necessary to ensure we capture errors inside the try-catch-finally block.
@@ -27,142 +27,197 @@ trap
     exit -1
 }
 
-function Deploy-Artifact([string]$Activity, $Resource)
-{
-    $output = @() 
+function Deploy-LabArtifact {
+    [CmdletBinding()]
+    param (
+        [parameter(HelpMessage = 'The request for the activity to be performed.', Mandatory = $true)]
+        $ActivityRequest
+    )
+    
+    Start-LabVirtualMachine -ActivityResource $ActivityRequest.Resource
 
-    if ($Resource.PowerState -eq 'Stopped') 
+    foreach($activity in $ActivityRequest.Activity.Split(',')) 
     {
-        # The virtual machine has been stopped and it must be started before applying an artifact.
-        $response = Invoke-AzResourceAction -ResourceId $Resource.ResourceId -Action 'start' -ApiVersion '2018-09-15' -Force
-    }
-
-    if ($Resource.PowerState -ne 'Running' -or ($null -ne $response -and $response.Status -ne 'Succeeded')) 
-    {
-        throw "$($Resource.ResourceId) is not in a valid state to continue."
-    }
-
-    # There are scenarios where there will be more than one artifact that needs to be applied. This is 
-    # represented by the content of the Activity parameter containing more than one activity seperated
-    # by a comma. To ensure this scenario is handled correctly, the content of the Activity parameter 
-    # should be split by a comma. That way we can ensure each activity is applied.
-
-    $Activity.Split(',') | ForEach-Object {
         $artifact  = @()
-        $artifact += Get-DeviceArtifact -Activity $_ -Resource $Resource -ErrorAction 'Continue' -ErrorVariable deviceArtifactError
+        $artifact += Get-LabArtifact -Activity $activity -ActivityResource $ActivityRequest.Resource 
 
-        if($null -ne $deviceArtifactError)
-        {
-            $output += $deviceArtifactError
-            continue
-        }
-    
-        # We are applying the artifacts individually because Azure DevTest Labs will abort the request 
-        # if there is an exception when applying any of the artifacts in the request. To contend with 
-        # this possiblity a single artifact will be included in each request.
-
-        $response = Invoke-AzResourceAction -Parameters  @{artifacts = $artifact} -ResourceId $Resource.ResourceId -Action 'applyArtifacts' -ApiVersion '2018-09-15' -Force -ErrorAction 'Continue' -ErrorVariable applyArtifactError
-    
-        if($response.Status -ne 'Succeeded' -or $null -ne $applyArtifactError)
-        {
-            $output += $applyArtifactError
-        }
+        Invoke-AzResourceAction -Parameters  @{artifacts = $artifact} -ResourceId $ActivityRequest.Resource.ResourceId -Action 'applyArtifacts' -ApiVersion '2018-09-15' -Force
     }
-
-    $output
 }
 
-function Get-DeviceArtifact([string]$Activity, $Resource)
+function Get-LabArtifact 
 {
+    [CmdletBinding()]
+    param (
+        [parameter(HelpMessage = 'The activity to be performed.', Mandatory = $true)]
+        [string]$Activity, 
+
+        [parameter(HelpMessage = 'The resource for the activity to be performed.', Mandatory = $true)]
+        $ActivityResource
+    )
+    
+    $environment = Get-AbEnvironment -Name $ActivityResource.EnvironmentName
+
+    $labName           = $environment.ExtendedProperties.DevTestLabName
+    $resourceGroupName = $environment.ExtendedProperties.ResourceGroupName
+    $subscriptionId    = $environment.ExtendedProperties.SubscriptionId
+
     $artifactId = '/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.DevTestLab/labs/{2}/artifactSources/{3}/artifacts/{4}' `
-        -f $env:AzureSubscription, $env:ResourceGroupName, $env:LabName, 'automationbrew', $Activity
+        -f $subscriptionId, $resourceGroupName, $labName, 'automationbrew', $Activity
 
-    if($Activity -eq 'sync-mdm-device')
-    {
-        return @{
-            artifactId = $artifactId
-            parameters = Get-DeviceArtifactParameter -Activity $Activity -Resource $Resource
-        }
+    return @{
+        artifactId = $artifactId
+        parameters = Get-LabArtifactParameter -Activity $Activity -ActivityResource $ActivityResource
     }
-
-    return @{artifactId = $artifactId}
 }
 
-function Get-DeviceArtifactParameter([string]$Activity, $Resource)
+function Get-LabArtifactParameter
 {
-    if($Activity -ne 'sync-mdm-device')
+    [CmdletBinding()]
+    param (
+        [parameter(HelpMessage = 'The activity to be performed.', Mandatory = $true)]
+        [string]$Activity, 
+
+        [parameter(HelpMessage = 'The resource for the activity to be performed.', Mandatory = $true)]
+        $ActivityResource
+    )
+
+    $parameters = @()
+
+    if($Activity -eq 'start-defenderav-scan')
     {
-        return $null
+        $parameters += @{'name' = "scanType"; 'value' = 'FullScan'}
+    }
+    elseif($Activity -eq 'sync-mdm-device')
+    {
+        $parameters += Get-UserCredentialParameter -ActivityResource $ActivityResource
     }
 
-    $refreshToken = Get-AzKeyVaultSecret -SecretName $Resource.ForeignKey -VaultName $env:KeyVaultName
+    return $parameters
+}
 
-    $aadToken   = New-AbAccessToken -ApplicationId $env:ApplicationId -RefreshToken $refreshToken.SecretValue -Scopes 'https://graph.windows.net/.default' -Tenant $Resource.Tenant
-    $graphToken = New-AbAccessToken -ApplicationId $env:ApplicationId -RefreshToken $refreshToken.SecretValue -Scopes 'https://graph.microsoft.com/.default' -Tenant $Resource.Tenant
+function Get-UserCredentialParameter
+{
+    [CmdletBinding()]
+    param (
+        [parameter(HelpMessage = 'The resource for the activity to be performed.', Mandatory = $true)]
+        $ActivityResource
+    )    
 
-    Connect-AzureAD -AadAccessToken $aadToken.AccessToken -AccountId $graphToken.Username -MsAccessToken $graphToken.AccessToken -Tenant $Resource.Tenant 
-    Connect-MgGraph -AccessToken  $graphToken.AccessToken 
+    $environment = Get-AbEnvironment -Name $ActivityResource.EnvironmentName
+    $refreshToken = Get-AzKeyVaultSecret -SecretName $environment.Tenant -VaultName $environment.ExtendedProperties.KeyVaultName
 
-    Select-MgProfile -Name 'beta'
+    $graphToken = New-AbAccessToken -ApplicationId $environment.ApplicationId -RefreshToken $refreshToken.SecretValue -Scopes 'https://graph.microsoft.com/.default' -Tenant $ActivityResource.Tenant
+    $secureToken = ConvertTo-SecureString -String $graphToken.AccessToken -AsPlainText
 
-    $device = Get-MgDeviceManagementManagedDevice -Filter "deviceName eq '$($Resource.ComputerName)'" -Property @('deviceName', 'id')
+    $deviceRequest = '{0}/beta/deviceManagement/managedDevices?$filter=deviceName eq %27{1}%27&Select=deviceName%2Cid' -f $environment.MicrosoftGraphEndpoint, $ActivityResource.ComputerName
+    $device = (Invoke-RestMethod -Authentication Bearer -Method GET -Token $secureToken -Uri $deviceRequest).Value
 
     if($null -eq $device) 
     {
-        throw "$($Resource.ResourceId) does not have a corresponding managed device managed by Microsoft Endpoint Manager."
+        throw "$($ActivityResource.ComputeId) with the computer name $($ActivityResource.ComputerName) does not have a corresponding managed device managed by Microsoft Endpoint Manager."
     }
 
-    $user = Get-MgDeviceManagementManagedDeviceUser -ManagedDeviceId $device.Id
+    $userRequest = '{0}/beta/deviceManagement/managedDevices/{1}/users' -f $environment.MicrosoftGraphEndpoint, $device.Id
+    $user = (Invoke-RestMethod -Authentication Bearer -Method GET -Token $secureToken -Uri $userRequest).Value
 
-    if($user -eq $null)
+    if($null -eq $user)
     {
-        throw "$($Resource.ResourceId) does not have a user assigned within Microsoft Endpoint Manager."
+        throw "$($ActivityResource.ResourceId) with the computer name $($ActivityResource.ComputerName) does not have a user assigned within Microsoft Endpoint Manager."
     }
 
     $password = New-AbRandomPassword -Length 24 -NumberOfNonAlphanumericCharacters 6
     [string]$plainText = ConvertFrom-SecureString -SecureString $password -AsPlainText
 
-    Set-AzureADUserPassword -ObjectId $user.Id -Password $password -ForceChangePasswordNextLogin $false
+    $passwordRequest = '{0}/beta/users/{1}' -f $environment.MicrosoftGraphEndpoint, $user.Id
+    $passwordPayload = "
+    {
+        'passwordProfile':
+        {
+            'forceChangePasswordNextSignIn':false,
+            'password': '$plainText'
+        }
+    }
+    "
+
+    Invoke-RestMethod -Authentication Bearer -Body $passwordPayload -ContentType 'application/json' -Method Patch -Token $secureToken -Uri $passwordRequest
     Start-Sleep -Seconds 15
 
     $parameters = @()
 
-    $parameters += @{"name" = "username"; "value" = $user.UserPrincipalName}
-    $parameters += @{"name" = "password"; "value" = $plainText}
+    $parameters += @{'name' = 'username'; 'value' = $user.UserPrincipalName}
+    $parameters += @{'name' = 'password'; 'value' = $plainText}
 
     return $parameters;
 }
 
-function Initialize-Module([string]$Module)
+function Start-LabVirtualMachine
 {
-    if(!(Get-Module $Module)) 
+    [CmdletBinding()]
+    param (
+        [parameter(HelpMessage = 'The resource for the activity to be performed.', Mandatory = $true)]
+        $ActivityResource
+    )
+ 
+    if($ActivityResource.PowerState -eq 'Running')
     {
-        if($Module -eq 'AzureAD')
-        {
-            Import-Module $Module -UseWindowsPowerShell
-        }
-        else 
-        {
-            Import-Module $Module
-        }
+        return $null
     }
+
+    if($ActivityResource.PowerState -ne 'Stopped')
+    {
+        throw "The virtual machine $($ActivityResource.ResourceId) cannot be started. Last known power state for the virtual machine is $($ActivityResource.PowerState)"
+    }
+
+    $response = Invoke-AzResourceAction -ResourceId $ActivityResource.ResourceId -Action 'start' -ApiVersion '2018-09-15' -Force
+
+    if($response.Status -ne 'Succeeded') 
+    {
+        throw "Request to start virtual machine $($ActivityResource.ResourceId) was not successful."
+    }
+
+    $resource = Get-AzResource -ExpandProperties -ResourceId $ActivityResource.ResourceId
+
+    for ($count = 0; $count -lt 5; $count++) 
+    {
+        if($resource.Properties.LastKnownPowerState -eq 'Running') 
+        {
+            return $response 
+        }    
+
+        Start-Sleep -Seconds 120
+        $resource = Get-AzResource -ExpandProperties -ResourceId $ActivityResource.ResourceId
+    }
+
+    if($resource.Properties.LastKnownPowerState -eq 'Running') 
+    {
+        return $response 
+    }
+
+    throw "Attempt to start $($ActivityResource.ResourceId) did not complete in the expected time frame."
 }
 
 try
 {
-    Initialize-Module -Module Ab
-    Initialize-Module -Module AzureAD
-    Initialize-Module -Module Microsoft.Graph.Authentication
-    Initialize-Module -Module Microsoft.Graph.DeviceManagement
-
-    Set-AzContext -Subscription $env:AzureSubscription -Tenant $env:AzureTenant
-    
-    if($context.Category -eq 'device')
-    {
-        $resource = ConvertFrom-Json -InputObject $context.Resource
-    
-        Deploy-Artifact -Activity $context.Activity -Resource $resource
+    $activityRequest = [PSCustomObject]@{
+        Activity = $Context.Activity
+        Resource = ConvertFrom-Json -InputObject $Context.Resource
     }
+
+    if($Context.Category -eq 'Data')
+    {
+        # Not implemented yet
+    }
+    elseif($Context.Category -eq 'Device')
+    {
+        $output = Deploy-LabArtifact -ActivityRequest $activityRequest
+    }
+    elseif($Context.Category -eq 'Identity')
+    {
+        # Not implemented yet
+    }
+
+    $output
 }
 finally
 {

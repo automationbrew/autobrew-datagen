@@ -1,4 +1,4 @@
-param($context)
+param($Context)
 
 $requests = Invoke-DurableActivity -FunctionName 'datagen-build'
 

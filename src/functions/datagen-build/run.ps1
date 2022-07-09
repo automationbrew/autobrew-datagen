@@ -1,4 +1,4 @@
-param($context)
+param($Context)
 
 # Note: Because the $ErrorActionPreference is "Stop", this script will stop on first failure.  
 #       This is necessary to ensure we capture errors inside the try-catch-finally block.
@@ -27,62 +27,120 @@ trap
     exit -1
 }
 
-class DataRequest 
+class ActivityRequest 
 {
     [string]$Activity
     [string]$Category
     [string]$Resource
 }
 
-function Join-DeviceActivity($Tags)
+class ActivityResource 
 {
-    $activity = $Tags.Daily
+    [string]$ComputeId
+    [string]$ComputerName
+    [string]$EnvironmentName
+    [string]$PowerState
+    [string]$ResourceId
+    [string]$Tenant
+}
 
-    if((Get-Date).DayOfWeek -eq 'Tuesday') 
+function Get-ActivityRequest
+{
+    [CmdletBinding()]
+    param (
+        [parameter(HelpMessage = 'The identifier for the DevTest Lab virtual machine in Microsoft Azure.', Mandatory = $true)]
+        [string]$ResourceId,
+
+        [parameter(HelpMessage = 'The hashtable of tags for the DevTest Lab virtual machine in Microsoft Azure.', Mandatory = $true)]
+        [hashtable]$Tags
+    )
+
+    $request = [ActivityRequest]::new()
+
+    $request.Activity = Get-VmActivity -Tags $Tags
+    $request.Category = 'Device'
+    $request.Resource = Get-ActivityResource -ResourceId $ResourceId
+
+    return $request
+}
+
+function Get-ActivityResource
+{
+    [CmdletBinding()]
+    param (
+        [parameter(HelpMessage = 'The identifier for the DevTest Lab virtual machine in Microsoft Azure.', Mandatory = $true)]
+        [string]$ResourceId
+    )
+
+    $azResource = Get-AzResource -ExpandProperties -ResourceId $ResourceId
+    $instanceView = Get-VmInstanceView -ComputeId $azResource.Properties.ComputeId
+    $resource = [ActivityResource]::new()
+
+    $resource.ComputeId       = $azResource.Properties.ComputeId 
+    $resource.ComputerName    = $instanceView.Properties.InstanceView.ComputerName
+    $resource.EnvironmentName = $azResource.Tags['environmentName']
+    $resource.PowerState      = $azResource.Properties.LastKnownPowerState 
+    $resource.ResourceId      = $azResource.ResourceId
+    $resource.Tenant          = $azResource.Tags['tenant']
+
+    return ConvertTo-Json -InputObject $resource
+}
+
+function Get-VmActivity
+{
+    [CmdletBinding()]
+    param (
+        [parameter(HelpMessage = 'The hashtable of tags for the DevTest Lab virtual machine in Microsoft Azure.', Mandatory = $true)]
+        [hashtable]$Tags
+    )
+    
+    $activity = $Tags['daily']
+    
+    if((Get-Date).DayOfWeek -eq 'Tuesday')
     {
-        $activity = $activity, $Tags.Weekly -Join ','
+        $activity = $activity, $Tags['weekly'] -Join ','
     }
 
-    $dateMonthly = (1..21 | ForEach-Object {([datetime](Get-Date).ToString('MM/01/yyyy')).AddDays($_) 
-        | Where-Object {$_.DayOfWeek -eq 'Wednesday'}})[1]
+    $calculatedDate = (1..21 | ForEach-Object {([datetime](Get-Date).ToString('MM/01/yyyy')).AddDays($_) | Where-Object {$_.DayOfWeek -eq 'Wednesday'}})[1]
 
-    if((Get-Date).ToString('MM/dd/yyyy') -eq $dateMonthly.ToString('MM/dd/yyyy')) 
+    if((Get-Date).ToString('MM/dd/yyyy') -eq $calculatedDate.ToString('MM/dd/yyyy'))
     {
-        $activity = $activity, $Monthly -Join ','
+        $activity = $activity, $Tags['monthly'] -Join ','
     }
 
     return $activity
 }
 
-try
+function Get-VmInstanceView 
 {
-    $activities = @(); 
+    [CmdletBinding()]
+    param (
+        [parameter(HelpMessage = 'The identifier for the compute resource in Microsoft Azure.', Mandatory = $true)]
+        [string]$ComputeId
+    )
+    
+    $instanceViewPath = '{0}?$expand=instanceView&api-version=2021-11-01' -f $ComputeId
+    $instanceViewResponse = Invoke-AzRest -Path $instanceViewPath -Method GET  
+    
+    return ConvertFrom-Json $instanceViewResponse.Content 
+}
 
-    Set-AzContext -Subscription $env:AzureSubscription -Tenant $env:AzureTenant
+try 
+{
+    $output = @()
+    $environments = Get-AbEnvironment | Where-Object {$_.Type -eq 'UserDefined'}
 
-    Get-AzResource -ExpandProperties -ResourceGroupName $env:ResourceGroupName -ResourceType 'Microsoft.DevTestLab/labs/virtualMachines' | ForEach-Object {
-        $instanceViewPath = '{0}?$expand=instanceView&api-version=2021-11-01' -f $_.Properties.ComputeId
-        $instanceViewResponse = Invoke-AzRest -Path $instanceViewPath -Method GET  
-        $instanceView = ConvertFrom-Json $instanceViewResponse.Content 
-        
-        $request  = [DataRequest]::new()
-        $resource = [PSCustomObject]@{ 
-            ComputeId    = $_.Properties.ComputeId 
-            ComputerName = $instanceView.Properties.InstanceView.ComputerName
-            ForeignKey   = $_.Tags.ForeignKey
-            PowerState   = $_.Properties.LastKnownPowerState 
-            ResourceId   = $_.ResourceId
-            Tenant       = $_.Tags.Tenant
+    foreach($environment in $environments)
+    {
+        $virtualMachines = Get-AzResource -ResourceGroupName $environment.ExtendedProperties.ResourceGroupName -ResourceType 'Microsoft.DevTestLab/labs/virtualMachines' -Tag @{EnvironmentName = $environment.Name}
+
+        foreach($virtualMachine in $virtualMachines)
+        {
+            $output += Get-ActivityRequest -ResourceId $virtualMachine.ResourceId -Tags $virtualMachine.Tags
         }
-
-        $request.Activity = Join-DeviceActivity -Tags $_.Tags
-        $request.Category = 'device'
-        $request.Resource = ConvertTo-Json -InputObject $resource 
-
-        $activities += $request
     }
-
-    $activities | Where-Object { [string]::IsNullOrEmpty($_.Activity) -eq $false }
+ 
+    $output
 }
 finally
 {
