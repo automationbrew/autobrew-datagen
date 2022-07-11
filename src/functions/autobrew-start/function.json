@@ -4,7 +4,7 @@
       "name": "Timer",
       "type": "timerTrigger",
       "direction": "in",
-      "schedule": "0 0 10 * * MON-FRI"
+      "schedule": "0 0 10 * * 1-5"
     },
     {
       "name": "starter",

@@ -1,5 +1,5 @@
-@description('The key used to establish a foreign relationship. This value will be added as a tag on the virtual machine.')
-param foreignKey string
+@description('The name of the environment for the virtual machine. This value will be added as a tag on the virtual machine.')
+param environmentName string
 
 @description('The identifier for the application that will be used by the install provisioning package artifact to access Key Vault.')
 param keyVaultClientId string 
@@ -124,11 +124,11 @@ resource virtualMachine 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' =
     userName: 'labadmin'
   }
   tags: {
-    daily: 'sync-mdm-device'
-    foreignKey: foreignKey
-    monthly: 'new-lsass-dump,sync-github-malware'
-    tenant: tenant
-    weekly: 'start-defenderav-scan'
     AutoStartOn: 'true'
+    Daily: 'sync-mdm-device'
+    EnvironmentName: environmentName
+    Monthly: 'new-lsass-dump,sync-github-malware'
+    Tenant: tenant
+    Weekly: 'start-defenderav-scan'
   }
 }

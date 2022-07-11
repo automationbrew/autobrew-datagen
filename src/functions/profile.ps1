@@ -22,3 +22,21 @@ if ($env:MSI_SECRET) {
 # You can also define functions or aliases that can be referenced in any of your PowerShell functions.
 
 Import-Module Ab
+
+$context = New-CosmosDbContext -Account $env:CosmosDbAccount -Database 'autobrew' -ResourceGroupName $env:ResourceGroup -MasterKeyType PrimaryReadonlyMasterKey
+$documents = Get-CosmosDbDocument -Context $context -CollectionId 'environments' -Query $query
+
+foreach($item in $documents)
+{
+    $splat = @{}
+
+    $splat['ActiveDirectoryAuthority'] = $item.ActiveDirectoryAuthority
+    $splat['ApplicationId'] = $item.ApplicationId
+    $splat['DevTestLabName'] = $item.DevTestLabName
+    $splat['KeyVaultName'] = $item.KeyVaultName
+    $splat['MicrosoftGraphEndpoint'] = $item.MicrosoftGraphEndpoint
+    $splat['ResourceGroupName'] = $item.ResourceGroupName
+    $splat['Tenant'] = $item.Tenant
+
+    Add-AbEnvironment @splat
+}
