@@ -153,10 +153,10 @@ function Get-VmResource
     $resource = [PSCustomObject]@{
         ComputeId = $azResource.Properties.ComputeId 
         ComputerName = $instanceView.Properties.InstanceView.ComputerName
-        EnvironmentName = $azResource.Tags['environmentName']
+        EnvironmentName = $azResource.Tags['EnvironmentName']
         PowerState = $azResource.Properties.LastKnownPowerState 
         ResourceId = $azResource.ResourceId
-        Tenant = $azResource.Tags['tenant']
+        Tenant = $azResource.Tags['Tenant']
     }
 
     return ConvertTo-Json -InputObject $resource

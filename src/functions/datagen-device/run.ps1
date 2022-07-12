@@ -40,9 +40,9 @@ function Get-LabArtifact
     
     $environment = Get-AbEnvironment -Name $ActivityResource.EnvironmentName
 
-    $labName           = $environment.ExtendedProperties.DevTestLabName
+    $labName = $environment.ExtendedProperties.DevTestLabName
     $resourceGroupName = $environment.ExtendedProperties.ResourceGroupName
-    $subscriptionId    = $environment.ExtendedProperties.SubscriptionId
+    $subscriptionId = $environment.ExtendedProperties.SubscriptionId
 
     $artifactId = '/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.DevTestLab/labs/{2}/artifactSources/{3}/artifacts/{4}' `
         -f $subscriptionId, $resourceGroupName, $labName, 'automationbrew', $Activity

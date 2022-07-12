@@ -1,4 +1,8 @@
-param($Context)
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory)]
+    [int]$Days = 30
+)
 
 # Note: Because the $ErrorActionPreference is "Stop", this script will stop on first failure.  
 #       This is necessary to ensure we capture errors inside the try-catch-finally block.
@@ -18,7 +22,7 @@ trap
         Write-Host -Object "`nERROR: $message" -ForegroundColor Red
     }
 
-    Write-Host "`nAn exception was encountered when performing this activity.`n"
+    Write-Host "`nThe artifact failed to apply.`n"
 
     # IMPORTANT NOTE: Throwing a terminating error (using $ErrorActionPreference = "Stop") still
     # returns exit code zero from the PowerShell script when using -File. The workaround is to
@@ -27,9 +31,11 @@ trap
     exit -1
 }
 
-try
+try 
 {
-    # Not implemented yet
+    $directoriesToRemove = Get-ChildItem -Directory -Path 'C:\Threats' | Where-Object { $_.CreationTime -lt (Get-Date).AddDays(-$Days) }
+    
+    $directoriesToRemove | Remove-Item -Force -Recurse
 }
 finally
 {

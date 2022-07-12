@@ -26,3 +26,12 @@ trap
     # a non-zero exit code from the catch block.
     exit -1
 }
+
+try
+{
+    # Not implemented yet
+}
+finally
+{
+    Pop-Location
+}
