@@ -39,12 +39,12 @@ function Get-DataActivity
     [CmdletBinding()]
     param (
         [parameter(HelpMessage = 'The environment that contains the resources.', Mandatory = $true)]
-        [string]$Environment
+        $Environment
     )
 
     # Not implemented yet
 
-    return $null
+    return @()
 }
 
 function Get-DeviceActivity
@@ -52,7 +52,7 @@ function Get-DeviceActivity
     [CmdletBinding()]
     param (
         [parameter(HelpMessage = 'The environment that contains the resources.', Mandatory = $true)]
-        [string]$Environment
+        $Environment
     )
 
     $output = @()
@@ -72,12 +72,12 @@ function Get-IdentityActivity
     [CmdletBinding()]
     param (
         [parameter(HelpMessage = 'The environment that contains the resources.', Mandatory = $true)]
-        [string]$Environment
+        $Environment
     )
 
     # Not implemented yet
 
-    return $null
+    return @()
 }
 
 function Get-VmActivity
@@ -85,7 +85,7 @@ function Get-VmActivity
     [CmdletBinding()]
     param (
         [parameter(HelpMessage = 'The hashtable of tags for the DevTest Lab virtual machine in Microsoft Azure.', Mandatory = $true)]
-        [hashtable]$Tags
+        $Tags
     )
     
     $activity = $Tags['Daily']
@@ -127,7 +127,7 @@ function Get-VmRequest
         [string]$ResourceId,
 
         [parameter(HelpMessage = 'The hashtable of tags for the DevTest Lab virtual machine in Microsoft Azure.', Mandatory = $true)]
-        [hashtable]$Tags
+        $Tags
     )
 
     $request = [ActivityRequest]::new()
