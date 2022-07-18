@@ -54,6 +54,9 @@ try
         'Windows 365 Administrator'               = '11451d60-acb2-45eb-a7d6-43d0f0125c13'
     }
 
+    Import-Module Microsoft.Graph.Authentication
+    Import-Module Microsoft.Graph.Groups
+
     foreach($environment in $environments)
     {
         $refreshToken = Get-AzKeyVaultSecret -SecretName $environment.Tenant -VaultName $environment.ExtendedProperties.KeyVaultName
