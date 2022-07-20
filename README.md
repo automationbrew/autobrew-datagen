@@ -1,3 +1,3 @@
 # Automation Brew Data Generation
 
-This project is currently under development. As we continue to make progress documentation and new features will be added.
+This project provides artifacts, scripts, and templates that are helpful for automating different aspects of data generation.
