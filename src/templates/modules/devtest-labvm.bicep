@@ -1,5 +1,5 @@
-@description('The key used to establish a foreign relationship. This value will be added as a tag on the virtual machine.')
-param foreignKey string
+@description('The name of the environment for the virtual machine. This value will be added as a tag on the virtual machine.')
+param environmentName string
 
 @description('The identifier for the application that will be used by the install provisioning package artifact to access Key Vault.')
 param keyVaultClientId string 
@@ -50,7 +50,7 @@ resource virtualMachine 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' =
         parameters: [
           {
             name: 'packageUrl'
-            value: 'https://github.com/PowerShell/PowerShell/releases/download/v7.2.5/PowerShell-7.2.5-win-x64.msi'
+            value: 'https://github.com/PowerShell/PowerShell/releases/download/v7.3.0/PowerShell-7.3.0-win-x64.msi'
           }
           {
             name: 'installCRuntime'
@@ -112,7 +112,7 @@ resource virtualMachine 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' =
     galleryImageReference: {
       offer: 'windows-11'
       publisher: 'microsoftwindowsdesktop'
-      sku: 'win11-21h2-pro'
+      sku: 'win11-22h2-pro'
       osType: 'Windows'
       version: 'latest'
     }
@@ -124,11 +124,11 @@ resource virtualMachine 'Microsoft.DevTestLab/labs/virtualmachines@2018-09-15' =
     userName: 'labadmin'
   }
   tags: {
-    daily: 'sync-mdm-device'
-    foreignKey: foreignKey
-    monthly: 'new-lsass-dump,sync-github-malware'
-    tenant: tenant
-    weekly: 'start-defenderav-scan'
     AutoStartOn: 'true'
+    Daily: 'sync-mdm-device'
+    EnvironmentName: environmentName
+    Monthly: 'new-lsass-dump,sync-github-malware'
+    Tenant: tenant
+    Weekly: 'remove-expired-threats,start-defenderav-scan'
   }
 }

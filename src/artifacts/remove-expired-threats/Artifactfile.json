@@ -1,0 +1,21 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/azure-devtestlab/master/schemas/2016-11-28/dtlArtifacts.json",
+  "title": "Remove expired threats",
+  "publisher": "Isaiah Williams",
+  "description": "Removes threats that have expired based on the specified number of days.",
+  "tags": [
+    "Device"
+  ],
+  "iconUri": "https://www.powershellgallery.com/Content/Images/packageDefaultIcon.png",
+  "targetOsType": "Windows",
+  "parameters": {
+    "days": {
+      "description": "The number of days old that defines the expiration for the threats that should be removed.",
+      "displayName": "Days",
+      "type": "int"
+    }
+  },
+  "runCommand": {
+    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./RemoveExpiredThreat.ps1 -Days ', parameters('days'), '\"')]"
+  }
+}
