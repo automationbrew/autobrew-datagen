@@ -38,7 +38,7 @@ try
         try 
         {
             $refreshToken = Get-AzKeyVaultSecret -SecretName $environment.Tenant -VaultName $environment.ExtendedProperties.KeyVaultName
-            Connect-AbAccount -Environment $environment.Name -RefreshToken $refreshToken.SecretValue 
+            Connect-AbAccount -Environment $environment.Name -RefreshToken $refreshToken.SecretValue
     
             $token = Get-AbAccessToken -Scopes 'https://graph.microsoft.com/.default'
             Set-AzureKeyVaultSecret -VaultName $environment.ExtendedProperties.KeyVaultName -Name $environment.Tenant -SecretValue $token.RefreshToken    

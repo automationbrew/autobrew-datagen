@@ -2,6 +2,13 @@
   "version": "2.0",
   "logging": {
     "applicationInsights": {
+      "enableDependencyTracking": true,
+      "enableLiveMetrics": true,
+      "httpAutoCollectionOptions": {
+        "enableHttpTriggerExtendedInfoCollection": true,
+        "enableW3CDistributedTracing": true,
+        "enableResponseHeaderInjection": true
+      },
       "samplingSettings": {
         "isEnabled": true,
         "excludedTypes": "Request"
@@ -10,7 +17,7 @@
   },
   "extensionBundle": {
     "id": "Microsoft.Azure.Functions.ExtensionBundle",
-    "version": "[3.*, 4.0.0)"
+    "version": "[4.0.0, 5.0.0)"
   },
   "managedDependency": {
     "enabled": true
