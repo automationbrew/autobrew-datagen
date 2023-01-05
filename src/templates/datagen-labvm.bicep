@@ -1,5 +1,5 @@
-@description('The key used to establish a foreign relationship. This value will be added as a tag on the virtual machine.')
-param foreignKey string
+@description('The name of the environment for the virtual machine. This value will be added as a tag on the virtual machine.')
+param environmentName string
 
 @description('The identifier for the application that will be used by the install provisioning package artifact to access Key Vault.')
 param keyVaultClientId string 
@@ -45,7 +45,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' existing = {
 module labvm 'modules/devtest-labvm.bicep' = {
   name: vmResourceName
   params: {
-    foreignKey: foreignKey
+    environmentName: environmentName
     keyVaultClientId: keyVaultClientId
     keyVaultName: keyVaultName
     keyVaultSecret: keyVault.getSecret(keyVaultSecretName)

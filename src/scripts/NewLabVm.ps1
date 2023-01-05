@@ -1,8 +1,8 @@
 [CmdletBinding()]
 param(
-    [Parameter(HelpMessage = 'The key used to establish a foreign relationship. This value will be added as a tag on the virtual machine.', Mandatory = $true)]
+    [Parameter(HelpMessage = 'The name of the environment for the virtual machine. This value will be added as a tag on the virtual machine.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
-    [string]$ForeignKey, 
+    [string]$EnvironmentName, 
 
     [Parameter(HelpMessage = 'The identifier for the application that will be used by the install provisioning package artifact to access Key Vault.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
@@ -60,10 +60,12 @@ trap
 
     if ($message)
     {
-        Write-Host -Object "`nERROR: $message" -ForegroundColor Red
+        Write-Error -Message $message
     }
-
-    Write-Host "`nAn exception was encountered when attempting to create the new lab virtual machine.`n"
+    else 
+    {
+        Write-Error -Message "An exception was encountered when attempting to create the new lab virtual machine."
+    }
 
     # IMPORTANT NOTE: Throwing a terminating error (using $ErrorActionPreference = "Stop") still
     # returns exit code zero from the PowerShell script when using -File. The workaround is to
@@ -75,7 +77,7 @@ trap
 try 
 {
     $parameters = @{
-        foreignKey            = $ForeignKey
+        environmentName       = $EnvironmentName
         keyVaultClientId      = $KeyVaultClientId
         keyVaultName          = $KeyVaultName
         keyVaultResourceGroup = $ResourceGroupName

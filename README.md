@@ -1,3 +1,3 @@
 # Automation Brew Data Generation
 
-This project is currently under development. As we continue to make progress documentation and new features will be added.
+[![.NET workflow](https://github.com/automationbrew/autobrew-datagen/actions/workflows/powershell.yml/badge.svg)](https://github.com/automationbrew/autobrew-datagen/actions/workflows/powershell.yml)

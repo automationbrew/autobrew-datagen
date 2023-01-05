@@ -15,10 +15,12 @@ trap
 
     if ($message)
     {
-        Write-Host -Object "`nERROR: $message" -ForegroundColor Red
+        Write-Error -Message $message
     }
-
-    Write-Host "`nEncountered an exception when invoking this function.`n"
+    else 
+    {
+        Write-Error -Message "An exception was encountered when performing this activity.`n"
+    }
 
     # IMPORTANT NOTE: Throwing a terminating error (using $ErrorActionPreference = "Stop") still
     # returns exit code zero from the PowerShell script when using -File. The workaround is to
@@ -27,25 +29,7 @@ trap
     exit -1
 }
 
-function Deploy-LabArtifact {
-    [CmdletBinding()]
-    param (
-        [parameter(HelpMessage = 'The request for the activity to be performed.', Mandatory = $true)]
-        $ActivityRequest
-    )
-    
-    Start-LabVirtualMachine -ActivityResource $ActivityRequest.Resource
-
-    foreach($activity in $ActivityRequest.Activity.Split(',')) 
-    {
-        $artifact  = @()
-        $artifact += Get-LabArtifact -Activity $activity -ActivityResource $ActivityRequest.Resource 
-
-        Invoke-AzResourceAction -Parameters  @{artifacts = $artifact} -ResourceId $ActivityRequest.Resource.ResourceId -Action 'applyArtifacts' -ApiVersion '2018-09-15' -Force
-    }
-}
-
-function Get-LabArtifact 
+function Get-AbLabArtifact 
 {
     [CmdletBinding()]
     param (
@@ -58,20 +42,20 @@ function Get-LabArtifact
     
     $environment = Get-AbEnvironment -Name $ActivityResource.EnvironmentName
 
-    $labName           = $environment.ExtendedProperties.DevTestLabName
+    $labName = $environment.ExtendedProperties.DevTestLabName
     $resourceGroupName = $environment.ExtendedProperties.ResourceGroupName
-    $subscriptionId    = $environment.ExtendedProperties.SubscriptionId
+    $subscriptionId = $environment.ExtendedProperties.SubscriptionId
 
     $artifactId = '/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.DevTestLab/labs/{2}/artifactSources/{3}/artifacts/{4}' `
         -f $subscriptionId, $resourceGroupName, $labName, 'automationbrew', $Activity
 
     return @{
         artifactId = $artifactId
-        parameters = Get-LabArtifactParameter -Activity $Activity -ActivityResource $ActivityResource
+        parameters = Get-AbLabArtifactParameter -Activity $Activity -ActivityResource $ActivityResource
     }
 }
 
-function Get-LabArtifactParameter
+function Get-AbLabArtifactParameter
 {
     [CmdletBinding()]
     param (
@@ -84,19 +68,23 @@ function Get-LabArtifactParameter
 
     $parameters = @()
 
-    if($Activity -eq 'start-defenderav-scan')
+    if($Activity -eq 'removed-expired-threats') 
+    {
+        $parameters += @{'name' = "days"; 'value' = 30}
+    }
+    elseif($Activity -eq 'start-defenderav-scan')
     {
         $parameters += @{'name' = "scanType"; 'value' = 'FullScan'}
     }
     elseif($Activity -eq 'sync-mdm-device')
     {
-        $parameters += Get-UserCredentialParameter -ActivityResource $ActivityResource
+        $parameters += Get-AbUserCredentialParameter -ActivityResource $ActivityResource
     }
 
     return $parameters
 }
 
-function Get-UserCredentialParameter
+function Get-AbUserCredentialParameter
 {
     [CmdletBinding()]
     param (
@@ -151,52 +139,6 @@ function Get-UserCredentialParameter
     return $parameters;
 }
 
-function Start-LabVirtualMachine
-{
-    [CmdletBinding()]
-    param (
-        [parameter(HelpMessage = 'The resource for the activity to be performed.', Mandatory = $true)]
-        $ActivityResource
-    )
- 
-    if($ActivityResource.PowerState -eq 'Running')
-    {
-        return $null
-    }
-
-    if($ActivityResource.PowerState -ne 'Stopped')
-    {
-        throw "The virtual machine $($ActivityResource.ResourceId) cannot be started. Last known power state for the virtual machine is $($ActivityResource.PowerState)"
-    }
-
-    $response = Invoke-AzResourceAction -ResourceId $ActivityResource.ResourceId -Action 'start' -ApiVersion '2018-09-15' -Force
-
-    if($response.Status -ne 'Succeeded') 
-    {
-        throw "Request to start virtual machine $($ActivityResource.ResourceId) was not successful."
-    }
-
-    $resource = Get-AzResource -ExpandProperties -ResourceId $ActivityResource.ResourceId
-
-    for ($count = 0; $count -lt 5; $count++) 
-    {
-        if($resource.Properties.LastKnownPowerState -eq 'Running') 
-        {
-            return $response 
-        }    
-
-        Start-Sleep -Seconds 120
-        $resource = Get-AzResource -ExpandProperties -ResourceId $ActivityResource.ResourceId
-    }
-
-    if($resource.Properties.LastKnownPowerState -eq 'Running') 
-    {
-        return $response 
-    }
-
-    throw "Attempt to start $($ActivityResource.ResourceId) did not complete in the expected time frame."
-}
-
 try
 {
     $activityRequest = [PSCustomObject]@{
@@ -204,20 +146,13 @@ try
         Resource = ConvertFrom-Json -InputObject $Context.Resource
     }
 
-    if($Context.Category -eq 'Data')
+    foreach($activity in $activityRequest.Activity.Split(',')) 
     {
-        # Not implemented yet
-    }
-    elseif($Context.Category -eq 'Device')
-    {
-        $output = Deploy-LabArtifact -ActivityRequest $activityRequest
-    }
-    elseif($Context.Category -eq 'Identity')
-    {
-        # Not implemented yet
-    }
+        $artifact  = @()
+        $artifact += Get-AbLabArtifact -Activity $activity -ActivityResource $activityRequest.Resource 
 
-    $output
+        Invoke-AzResourceAction -Parameters  @{artifacts = $artifact} -ResourceId $activityRequest.Resource.ResourceId -Action 'applyArtifacts' -ApiVersion '2018-09-15' -Force
+    }
 }
 finally
 {
