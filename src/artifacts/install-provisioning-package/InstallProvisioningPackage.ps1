@@ -83,7 +83,7 @@ function New-ProvisioningPackage([string]$Arguments, [string]$WorkingDirectory)
 function Write-CustomizationXml([string]$WorkingDirectory)
 {
     # Create an instance of a secure string where the value is based upon the KeyVaultSecret parameter.
-    $secureKeyVaultSecret = ConvertTo-SecureString -String $KeyVaultSecret
+    $secureKeyVaultSecret = ConvertTo-SecureString -String $KeyVaultSecret -AsPlainText
 
     # Construct a new PSCredential object that will be used to establish a connection to Microsoft Azure.
     $credential = New-Object System.Management.Automation.PSCredential($KeyVaultClientId, $secureKeyVaultSecret)
