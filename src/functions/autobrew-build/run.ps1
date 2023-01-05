@@ -46,7 +46,7 @@ function Get-AbDeviceActivity
 
     $output = @()
 
-    $virtualMachines = Get-AzResource -ResourceGroupName $environment.ExtendedProperties.ResourceGroupName -ResourceType 'Microsoft.DevTestLab/labs/virtualMachines' -Tag @{EnvironmentName = $Environment.Name}
+    $virtualMachines = Get-AzResource -ResourceGroupName $Environment.ExtendedProperties.ResourceGroupName -ResourceType 'Microsoft.DevTestLab/labs/virtualMachines' -Tag @{EnvironmentName = $Environment.Name}
 
     foreach($virtualMachine in $virtualMachines)
     {

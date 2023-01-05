@@ -32,8 +32,10 @@ $query = @"
         c.devTestLabName, 
         c.keyVaultName, 
         c.microsoftGraphEndpoint,
+        c.microsoftPartnerCenterEndpoint,
         c.name, 
         c.resourceGroupName, 
+        c.subscriptionId,
         c.tenant 
     FROM 
         configurations c 
@@ -52,8 +54,10 @@ foreach($item in $documents)
     $splat['DevTestLabName'] = $item.DevTestLabName
     $splat['KeyVaultName'] = $item.KeyVaultName
     $splat['MicrosoftGraphEndpoint'] = $item.MicrosoftGraphEndpoint
+    $splat['MicrosoftPartnerCenterEndpoint'] = $item.MicrosoftPartnerCenterEndpoint
     $splat['Name'] = $item.Name
     $splat['ResourceGroupName'] = $item.ResourceGroupName
+    $splat['SubscriptionId'] = $item.SubscriptionId
     $splat['Tenant'] = $item.Tenant
 
     Add-AbEnvironment @splat

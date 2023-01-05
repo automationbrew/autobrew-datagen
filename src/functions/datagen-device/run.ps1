@@ -96,7 +96,7 @@ function Get-AbUserCredentialParameter
     $refreshToken = Get-AzKeyVaultSecret -SecretName $environment.Tenant -VaultName $environment.ExtendedProperties.KeyVaultName
 
     $graphToken = New-AbAccessToken -ApplicationId $environment.ApplicationId -RefreshToken $refreshToken.SecretValue -Scopes 'https://graph.microsoft.com/.default' -Tenant $ActivityResource.Tenant
-    $secureToken = ConvertTo-SecureString -String $graphToken.AccessToken
+    $secureToken = ConvertTo-SecureString -String $graphToken.AccessToken -AsPlainText
 
     $deviceRequest = '{0}/beta/deviceManagement/managedDevices?$filter=deviceName eq %27{1}%27&Select=deviceName%2Cid' -f $environment.MicrosoftGraphEndpoint, $ActivityResource.ComputerName
     $device = (Invoke-RestMethod -Authentication Bearer -Method GET -Token $secureToken -Uri $deviceRequest).Value
@@ -115,7 +115,7 @@ function Get-AbUserCredentialParameter
     }
 
     $password = New-AbRandomPassword -Length 24 -NumberOfNonAlphanumericCharacters 6
-    [string]$plainText = ConvertFrom-SecureString -SecureString $password
+    [string]$plainText = ConvertFrom-SecureString -SecureString $password -AsPlainText
 
     $passwordRequest = '{0}/beta/users/{1}' -f $environment.MicrosoftGraphEndpoint, $user.Id
     $passwordPayload = "
