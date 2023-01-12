@@ -56,7 +56,7 @@ try
         }
     }
 
-    Write-Output "`nThe artifact was applied successfully.`n"  
+    Write-Output "`nThe artifact was applied successfully.`n"
 }
 finally
 {

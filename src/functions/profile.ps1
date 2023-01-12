@@ -28,14 +28,14 @@ $context = New-CosmosDbContext -Account $env:CosmosDbAccount -Database 'autobrew
 
 $query = @"
     SELECT 
-        c.activeDirectoryAuthority, 
-        c.applicationId, 
-        c.devTestLabName, 
-        c.keyVaultName, 
+        c.activeDirectoryAuthority,
+        c.applicationId,
+        c.devTestLabName,
+        c.keyVaultName,
         c.microsoftGraphEndpoint,
         c.microsoftPartnerCenterEndpoint,
-        c.name, 
-        c.resourceGroupName, 
+        c.name,
+        c.resourceGroupName,
         c.subscriptionId,
         c.tenant 
     FROM 

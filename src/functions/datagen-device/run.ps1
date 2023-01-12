@@ -34,7 +34,7 @@ function Get-AbLabArtifact
     [CmdletBinding()]
     param (
         [parameter(HelpMessage = 'The activity to be performed.', Mandatory = $true)]
-        [string]$Activity, 
+        [string]$Activity,
 
         [parameter(HelpMessage = 'The resource for the activity to be performed.', Mandatory = $true)]
         $ActivityResource
@@ -60,7 +60,7 @@ function Get-AbLabArtifactParameter
     [CmdletBinding()]
     param (
         [parameter(HelpMessage = 'The activity to be performed.', Mandatory = $true)]
-        [string]$Activity, 
+        [string]$Activity,
 
         [parameter(HelpMessage = 'The resource for the activity to be performed.', Mandatory = $true)]
         $ActivityResource
@@ -68,7 +68,7 @@ function Get-AbLabArtifactParameter
 
     $parameters = @()
 
-    if($Activity -eq 'removed-expired-threats') 
+    if($Activity -eq 'removed-expired-threats')
     {
         $parameters += @{'name' = "days"; 'value' = 30}
     }
@@ -101,7 +101,7 @@ function Get-AbUserCredentialParameter
     $deviceRequest = '{0}/beta/deviceManagement/managedDevices?$filter=deviceName eq %27{1}%27&Select=deviceName%2Cid' -f $environment.MicrosoftGraphEndpoint, $ActivityResource.ComputerName
     $device = (Invoke-RestMethod -Authentication Bearer -Method GET -Token $secureToken -Uri $deviceRequest).Value
 
-    if($null -eq $device) 
+    if($null -eq $device)
     {
         throw "$($ActivityResource.ComputeId) with the computer name $($ActivityResource.ComputerName) does not have a corresponding managed device managed by Microsoft Endpoint Manager."
     }
@@ -146,7 +146,7 @@ try
         Resource = ConvertFrom-Json -InputObject $Context.Resource
     }
 
-    foreach($activity in $activityRequest.Activity.Split(',')) 
+    foreach($activity in $activityRequest.Activity.Split(','))
     {
         $artifact  = @()
         $artifact += Get-AbLabArtifact -Activity $activity -ActivityResource $activityRequest.Resource 
