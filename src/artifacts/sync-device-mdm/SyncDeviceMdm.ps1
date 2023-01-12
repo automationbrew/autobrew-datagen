@@ -3,7 +3,7 @@
         Starts the scheduled tasks that will synchronize the device with the management service.
 #>
 
-# Note: Because the $ErrorActionPreference is "Stop", this script will stop on first failure.  
+# Note: Because the $ErrorActionPreference is "Stop", this script will stop on first failure.
 #       This is necessary to ensure we capture errors inside the try-catch-finally block.
 $ErrorActionPreference = "Stop"
 
@@ -30,9 +30,9 @@ trap
     exit -1
 }
 
-try 
+try
 {
-    Get-ScheduledTask | ? {$_.TaskName -eq ‘PushLaunch’} | Start-ScheduledTask
+    Get-ScheduledTask | Where-Object {$_.TaskName -eq ‘PushLaunch’} | Start-ScheduledTask
 }
 finally
 {

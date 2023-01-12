@@ -81,9 +81,7 @@ try
 
     if ($success -eq $false)
     {
-        $retVal = [System.Runtime.InteropServices.Marshal]::GetLastWin32Error()
-
-        Write-Output "LogonUser was unsuccessful. Error code: $retVal"
+        Write-Output "LogonUser was unsuccessful."
         return
     }
 
