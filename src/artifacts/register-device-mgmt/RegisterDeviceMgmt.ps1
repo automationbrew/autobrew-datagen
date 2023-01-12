@@ -6,7 +6,7 @@ param(
 
     [Parameter(HelpMessage = 'The password to be used by the management service to validate the user.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
-    [string]$Password,
+    [string]$Value,
 
     [Parameter(HelpMessage = 'The address for the management service.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
@@ -51,7 +51,7 @@ try
         # Check if the Ab PowerShell module is installed.
         if (Get-Module -ListAvailable -Name Ab) {
             # The Ab not load and it is installed. This module must be loaded for other operations performed by this script.
-            Write-Host -ForegroundColor Green "Loading the AutomationBrew PowerShell module..."
+            Write-Object "Loading the AutomationBrew PowerShell module..."
             Import-Module Ab
         } else {
             Install-Module Ab

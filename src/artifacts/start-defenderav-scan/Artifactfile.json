@@ -21,6 +21,6 @@
     }
   },
   "runCommand": {
-    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./InstallProvisioningPackage.ps1 -ScanType ', parameters('scanType'), '\"')]"
+    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./StartDefenderAvScan.ps1 -ScanType ', parameters('scanType'), '\"')]"
   }
 }
