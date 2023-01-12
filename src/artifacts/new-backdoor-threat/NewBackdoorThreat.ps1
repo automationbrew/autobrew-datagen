@@ -38,7 +38,7 @@ try
         $path = "C:\$(-Join ((48..57) + (97..122) | Get-Random -Count 10 | ForEach-Object {[char]$_}))"
         $filename = "$(-Join ((48..57) + (97..122) | Get-Random -Count 10 | ForEach-Object {[char]$_})).sct"
 
-        if(! (Test-Path -Path $path)) 
+        if(!(Test-Path -Path $path))
         {
             New-Item -Path $path -ItemType Directory | Out-Null
         }

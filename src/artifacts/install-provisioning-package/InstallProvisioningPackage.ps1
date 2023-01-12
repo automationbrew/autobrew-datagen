@@ -52,10 +52,10 @@ trap
     exit -1
 }
 
-function New-ProvisioningPackage([string]$Arguments, [string]$WorkingDirectory)
+function New-ProvisioningPackage([string]$Arguments, [string]$KeyVaultClientId, [string]$KeyVaultName, [string]$KeyVaultSecret, [string]$KeyVaultTenant, [string]$WorkingDirectory)
 {
     # Add the customization file to the working directory.
-    Write-CustomizationXml -WorkingDirectory $WorkingDirectory
+    Write-CustomizationXml -KeyVaultClientId $KeyVaultClientId -KeyVaultName $KeyVaultName -KeyVaultSecret $KeyVaultSecret -KeyVaultTenant $KeyVaultTenant -WorkingDirectory $WorkingDirectory
 
     # Create a new instance of the ProcessStartInfo class used to define start details for a process.
     $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
@@ -80,7 +80,7 @@ function New-ProvisioningPackage([string]$Arguments, [string]$WorkingDirectory)
     }
 }
 
-function Write-CustomizationXml([string]$WorkingDirectory)
+function Write-CustomizationXml([string]$KeyVaultClientId, [string]$KeyVaultName, [string]$KeyVaultSecret, [string]$KeyVaultTenant, [string]$WorkingDirectory)
 {
     # Create an instance of a secure string where the value is based upon the KeyVaultSecret parameter.
     $secureKeyVaultSecret = ConvertTo-SecureString -String $KeyVaultSecret -AsPlainText
@@ -133,7 +133,7 @@ try
     $arguments = "/Build-ProvisioningPackage /CustomizationXML:{0} /PackagePath:{1} /StoreFile:{2}" -f $f0, $f1, $f2
 
     # Generate a new provisioning package.
-    $result = New-ProvisioningPackage -Arguments $arguments -WorkingDirectory $baseDirectory
+    $result = New-ProvisioningPackage -Arguments $arguments -KeyVaultClientId $KeyVaultClientId -KeyVaultName $KeyVaultName -KeyVaultSecret $KeyVaultSecret -KeyVaultTenant $KeyVaultTenant -WorkingDirectory $baseDirectory
 
     if($result.ExitCode -ne 0) {
         $builder = [System.Text.StringBuilder]::new()
