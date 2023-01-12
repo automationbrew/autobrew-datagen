@@ -15,7 +15,7 @@ param(
     [string]$Value
 )
 
-# Note: Because the $ErrorActionPreference is "Stop", this script will stop on first failure.  
+# Note: Because the $ErrorActionPreference is "Stop", this script will stop on first failure.
 #       This is necessary to ensure we capture errors inside the try-catch-finally block.
 $ErrorActionPreference = "Stop"
 
@@ -60,7 +60,7 @@ public static extern bool LogonUser(
   ref IntPtr phToken);
 '@
 
-try 
+try
 {
     $AdvApi32 = Add-Type -MemberDefinition $logonUserSignature -Name "AdvApi32" -Namespace "PsInvoke.NativeMethods" -PassThru
 
@@ -93,22 +93,22 @@ try
 
     $stopWatch = [System.Diagnostics.Stopwatch]::new()
 
-    if($null -eq $session) 
+    if($null -eq $session)
     {
         throw "The device is not supported or is not registered with Microsoft Endpoint Manager."
     }
     
     # Start the stop watch used to determine if the time elapsed exceeds five minutes.
     $stopWatch.Start()
-    
+
     # Start the synchronization process with Microsoft Endpoint Manager.
     $session.StartAsync()
 
-    # The synchronization process is performed asynchronously, which means the above operation will 
-    # not block until is has completed. Below is a loop that will block until the synchronization 
+    # The synchronization process is performed asynchronously, which means the above operation will
+    # not block until is has completed. Below is a loop that will block until the synchronization
     # operation has completed.
 
-    while($session.State -ne 'Completed') 
+    while($session.State -ne 'Completed')
     {
         if($stopWatch.ElapsedMilliseconds -ge 900000)
         {
@@ -116,7 +116,7 @@ try
             # to prevent this from blocking indefinitely.
             throw "The device synchronization process has exceeded the expected runtime of five minutes or less."
         }
-        
+
         # Sleep for thirty seconds to avoid constantly checking the status and to allow time for processing.
         Start-Sleep -Seconds 30
     }
@@ -140,7 +140,7 @@ finally
     {
         $session.Delete()
     }
-   
+
     if($tokenHandle -ne [System.IntPtr]::Zero)
     {
         $Kernel32::CloseHandle($tokenHandle)
