@@ -1,3 +1,3 @@
 # Automation Brew Data Generation
 
-[![.NET workflow](https://github.com/automationbrew/autobrew-datagen/actions/workflows/powershell.yml/badge.svg)](https://github.com/automationbrew/autobrew-datagen/actions/workflows/powershell.yml)
+[![DevSkim workflow](https://github.com/automationbrew/autobrew-datagen/actions/workflows/devskim.yml/badge.svg)](https://github.com/automationbrew/autobrew-datagen/actions/workflows/devskim.yml) [![PSScriptAnalyzer workflow](https://github.com/automationbrew/autobrew-datagen/actions/workflows/powershell.yml/badge.svg)](https://github.com/automationbrew/autobrew-datagen/actions/workflows/powershell.yml)

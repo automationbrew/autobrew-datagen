@@ -19,10 +19,10 @@ trap
 
     if ($message)
     {
-        Write-Host -Object "`nERROR: $message" -ForegroundColor Red
+        Write-Output "`nERROR: $message"
     }
 
-    Write-Host "`nThe artifact failed to apply.`n"
+    Write-Output "`nThe artifact failed to apply.`n"
 
     # IMPORTANT NOTE: Throwing a terminating error (using $ErrorActionPreference = "Stop") still
     # returns exit code zero from the PowerShell script when using -File. The workaround is to
@@ -31,32 +31,32 @@ trap
     exit -1
 }
 
-try 
+try
 {
-    if($PerformActivity -eq $true) 
+    if($PerformActivity -eq $true)
     {
-        if(! (Test-Path -Path "C:\Tools\Sysinternals")) 
+        if(! (Test-Path -Path "C:\Tools\Sysinternals"))
         {
-            New-Item -Path "C:\Tools\Sysinternals" -ItemType Directory | Out-Null 
+            New-Item -Path "C:\Tools\Sysinternals" -ItemType Directory | Out-Null
         }
 
-        if(! (Test-Path -Path "C:\Tools\Sysinternals\procdump64.exe" -PathType Leaf)) 
+        if(! (Test-Path -Path "C:\Tools\Sysinternals\procdump64.exe" -PathType Leaf))
         {
             # TODO - Update the following to use winget
-            choco install -y -f --acceptlicense --params "/InstallDir:C:\Tools\Sysinternals" --no-progress --stoponfirstfailure sysinternals 
+            choco install -y -f --acceptlicense --params "/InstallDir:C:\Tools\Sysinternals" --no-progress --stoponfirstfailure sysinternals
         }
 
-        try 
+        try
         {
             Start-Process -FilePath "C:\Tools\Sysinternals\procdump64.exe" -ArgumentList "-accepteula -ma lsass.exe out.dmp" -PassThru -Wait
         }
-        catch 
+        catch
         {
             # Ignore any error since one will occurr due to Windows Defender blocking this action.
-        } 
+        }
     }
 
-    Write-Host "`nThe artifact was applied successfully.`n"  
+    Write-Output "`nThe artifact was applied successfully.`n"
 }
 finally
 {

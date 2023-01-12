@@ -2,11 +2,11 @@
 param(
     [Parameter(HelpMessage = 'The name of the environment for the virtual machine. This value will be added as a tag on the virtual machine.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
-    [string]$EnvironmentName, 
+    [string]$EnvironmentName,
 
     [Parameter(HelpMessage = 'The identifier for the application that will be used by the install provisioning package artifact to access Key Vault.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
-    [string]$KeyVaultClientId, 
+    [string]$KeyVaultClientId,
 
     [Parameter(HelpMessage = 'The name for the resource group that contains the instance of Key Vault.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
