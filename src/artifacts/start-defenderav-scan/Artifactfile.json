@@ -9,7 +9,7 @@
   "iconUri": "https://www.powershellgallery.com/Content/Images/packageDefaultIcon.png",
   "targetOsType": "Windows",
   "parameters": {
-    "keyVaultClientId": {
+    "scanType": {
       "allowedValues": [
         "FullScan",
         "QuickScan"

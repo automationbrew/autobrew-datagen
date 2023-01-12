@@ -19,10 +19,10 @@ trap
 
     if ($message)
     {
-        Write-Host -Object "`nERROR: $message" -ForegroundColor Red
+        Write-Output "`nERROR: $message"
     }
 
-    Write-Host "`nThe artifact failed to apply.`n"
+    Write-Output "`nThe artifact failed to apply.`n"
 
     # IMPORTANT NOTE: Throwing a terminating error (using $ErrorActionPreference = "Stop") still
     # returns exit code zero from the PowerShell script when using -File. The workaround is to
@@ -31,15 +31,16 @@ trap
     exit -1
 }
 
-try 
+try
 {
     if($PerformActivity -eq $true)
     {
         $path = "C:\$(-Join ((48..57) + (97..122) | Get-Random -Count 10 | ForEach-Object {[char]$_}))"
         $filename = "$(-Join ((48..57) + (97..122) | Get-Random -Count 10 | ForEach-Object {[char]$_})).sct"
 
-        if(! (Test-Path -Path $path)) {
-            New-Item -Path $path -ItemType Directory | Out-Null 
+        if(! (Test-Path -Path $path)) 
+        {
+            New-Item -Path $path -ItemType Directory | Out-Null
         }
 
         $firstPart = @"
@@ -61,7 +62,7 @@ var foo = new ActiveXObject("WScript.Shell").Run("notepad.exe");]]>
         Start-Process -FilePath "regsvr32.exe" -ArgumentList "/s /n /u /i:$($path)\$($filename) scrobj.dll"
     }
 
-    Write-Host "`nThe artifact was applied successfully.`n"  
+    Write-Output "`nThe artifact was applied successfully.`n"
 }
 finally
 {

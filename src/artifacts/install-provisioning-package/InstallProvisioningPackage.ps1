@@ -2,7 +2,7 @@
 param(
     [Parameter(HelpMessage = 'The identifier for the application that will be used to access Key Vault.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
-    [string]$KeyVaultClientId, 
+    [string]$KeyVaultClientId,
 
     [Parameter(HelpMessage = 'The name for the resource group that contains the instance of Key Vault.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
@@ -25,7 +25,7 @@ param(
     [string]$Tenant
 )
 
-# Note: Because the $ErrorActionPreference is "Stop", this script will stop on first failure.  
+# Note: Because the $ErrorActionPreference is "Stop", this script will stop on first failure.
 #       This is necessary to ensure we capture errors inside the try-catch-finally block.
 $ErrorActionPreference = "Stop"
 
@@ -40,10 +40,10 @@ trap
 
     if ($message)
     {
-        Write-Host -Object "`nERROR: $message" -ForegroundColor Red
+        Write-Output "`nERROR: $message"
     }
 
-    Write-Host "`nThe artifact failed to apply.`n"
+    Write-Output "`nThe artifact failed to apply.`n"
 
     # IMPORTANT NOTE: Throwing a terminating error (using $ErrorActionPreference = "Stop") still
     # returns exit code zero from the PowerShell script when using -File. The workaround is to
@@ -94,8 +94,8 @@ function Write-CustomizationXml([string]$WorkingDirectory)
     # Obtain the bulk primary refresh token value from Key Vault.
     [string]$bprtValue = Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name $Tenant -AsPlainText
 
-    # Read the content of the template file that will be used to generate the provisioning package. 
-    [xml]$content = Get-Content -Path "$PSScriptRoot\Template.xml" 
+    # Read the content of the template file that will be used to generate the provisioning package.
+    [xml]$content = Get-Content -Path "$PSScriptRoot\Template.xml"
 
     # Inject the bulk refresh token into the answer file template.
     $content.WindowsCustomizations.ChildNodes.Customizations.Common.Accounts.Azure.BPRT = $bprtValue
@@ -104,7 +104,7 @@ function Write-CustomizationXml([string]$WorkingDirectory)
     $content.WindowsCustomizations.ChildNodes.Customizations.Common.DevDetail.DNSComputerName = "$NamePrefix%RAND:3%"
 
     # Write the markup containing this node and all its child nodes to the customization.xml file.
-    $content.OuterXml | Out-File "$WorkingDirectory\customization.xml"    
+    $content.OuterXml | Out-File "$WorkingDirectory\customization.xml"
 }
 
 try
@@ -149,7 +149,7 @@ try
     # Install the provisioning package that was built in the pervious action.
     Install-ProvisioningPackage -PackagePath "$baseDirectory\device.ppkg" -ForceInstall -QuietInstall
 
-    Write-Host "`nThe artifact was applied successfully.`n"  
+    Write-Output "`nThe artifact was applied successfully.`n"
 }
 finally
 {

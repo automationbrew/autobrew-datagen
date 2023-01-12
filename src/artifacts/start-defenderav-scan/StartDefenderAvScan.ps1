@@ -20,10 +20,10 @@ trap
 
     if ($message)
     {
-        Write-Host -Object "`nERROR: $message" -ForegroundColor Red
+        Write-Output "`nERROR: $message"
     }
 
-    Write-Host "`nThe artifact failed to apply.`n"
+    Write-Output "`nThe artifact failed to apply.`n"
 
     # IMPORTANT NOTE: Throwing a terminating error (using $ErrorActionPreference = "Stop") still
     # returns exit code zero from the PowerShell script when using -File. The workaround is to
@@ -36,7 +36,7 @@ try
 {
     Start-MpScan -ScanType $ScanType
 
-    Write-Host "`nThe artifact was applied successfully.`n"  
+    Write-Output "`nThe artifact was applied successfully.`n"  
 }
 finally
 {

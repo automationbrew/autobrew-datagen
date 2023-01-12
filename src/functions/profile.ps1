@@ -23,7 +23,8 @@ if ($env:MSI_SECRET) {
 
 Import-Module Ab
 
-$context = New-CosmosDbContext -Account $env:CosmosDbAccount -Database 'autobrew' -ResourceGroupName $env:ResourceGroup -MasterKeyType PrimaryReadonlyMasterKey
+$key = ConvertTo-SecureString -String $env:CosmosDbKey -AsPlainText
+$context = New-CosmosDbContext -Account $env:CosmosDbAccount -Database 'autobrew' -Key $key
 
 $query = @"
     SELECT 

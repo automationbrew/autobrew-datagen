@@ -90,7 +90,7 @@ function Get-VmInstanceView
     )
     
     $instanceViewPath = '{0}?$expand=instanceView&api-version=2021-11-01' -f $ComputeId
-    $instanceViewResponse = Invoke-AzRest -Path $instanceViewPath -Method GET  
+    $instanceViewResponse = Invoke-AzRestMethod -Path $instanceViewPath -Method GET  
     
     return ConvertFrom-Json $instanceViewResponse.Content 
 }
