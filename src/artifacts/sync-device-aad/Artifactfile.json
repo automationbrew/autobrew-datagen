@@ -21,6 +21,6 @@
     }
   },
   "runCommand": {
-    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./InvokeDeviceSync.ps1 -Username ''', parameters('username'), ''' -Value ''', parameters('password'), '''\"')]"
+    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./SyncDeviceAad.ps1 -Username ''', parameters('username'), ''' -Value ''', parameters('password'), '''\"')]"
   }
 }

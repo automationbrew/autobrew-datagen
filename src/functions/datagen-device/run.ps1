@@ -68,15 +68,15 @@ function Get-AbLabArtifactParameter
 
     $parameters = @()
 
-    if($Activity -eq 'removed-expired-threats')
+    if($Activity -eq 'remove-threat-expired')
     {
-        $parameters += @{'name' = "days"; 'value' = 30}
+        $parameters += @{'name' = "days"; 'value' = 15}
     }
     elseif($Activity -eq 'start-defenderav-scan')
     {
         $parameters += @{'name' = "scanType"; 'value' = 'FullScan'}
     }
-    elseif($Activity -eq 'sync-mdm-device')
+    elseif($Activity -eq 'sync-device-aad')
     {
         $parameters += Get-AbUserCredentialParameter -ActivityResource $ActivityResource
     }

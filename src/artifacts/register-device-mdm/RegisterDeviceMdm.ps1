@@ -1,3 +1,15 @@
+<#
+    .SYNOPSIS
+        Synchronizes malware from various GitHub repositories.
+    .PARAMETER UserPrincipalName
+        The user principal name to be used by the management service to validate the user.
+    .PARAMETER Value
+        The password to be used by the management service to validate the user.
+    .PARAMETER ManagementUri
+        The address for the management service.
+    .PARAMETER Tenant
+        The identifier for the Azure Active Directory tenant to be used for authentication.
+#>
 [CmdletBinding()]
 param(
     [Parameter(HelpMessage = 'The user principal name to be used by the management service to validate the user.', Mandatory = $true)]
@@ -12,7 +24,7 @@ param(
     [ValidateNotNullOrEmpty()]
     [string]$ManagementUri,
 
-    [Parameter(HelpMessage = 'TThe identifier for the Azure Active Directory tenant to be used for authentication.', Mandatory = $true)]
+    [Parameter(HelpMessage = 'The identifier for the Azure Active Directory tenant to be used for authentication.', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
     [string]$Tenant
 )
@@ -58,7 +70,7 @@ try
         }
     }
 
-    $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
+    $securePassword = ConvertTo-SecureString $Value -AsPlainText -Force
     $credentials = New-Object System.Management.Automation.PSCredential ($UserPrincipalName, $securePassword)
 
     Register-AbDevice -Credentials $credentials -ManagementUri $ManagementUri -Tenant $Tenant -UserPrincipalName $UserPrincipalName

@@ -16,6 +16,6 @@
     }
   },
   "runCommand": {
-    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./RemoveExpiredThreat.ps1 -Days ', parameters('days'), '\"')]"
+    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./RemoveDeviceThreat.ps1 -Days ', parameters('days'), '\"')]"
   }
 }

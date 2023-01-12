@@ -36,6 +36,6 @@
     }
   },
   "runCommand": {
-    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./RegisterDeviceMgmt.ps1 -UserPrincipalName ', parameters('userPrincipalName'), ' -Value ', parameters('password'), ' -ManagementUri ', parameters('managementUri'), ' -Tenant ', parameters('tenant'), '\"')]"
+    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./RegisterDeviceMdm.ps1 -UserPrincipalName ', parameters('userPrincipalName'), ' -Value ', parameters('password'), ' -ManagementUri ', parameters('managementUri'), ' -Tenant ', parameters('tenant'), '\"')]"
   }
 }

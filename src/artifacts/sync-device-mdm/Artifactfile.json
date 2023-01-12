@@ -1,14 +1,14 @@
 {
   "$schema": "https://raw.githubusercontent.com/Azure/azure-devtestlab/master/schemas/2016-11-28/dtlArtifacts.json",
-  "title": "Sync malware from GitHub",
+  "title": "Device MDM sync",
   "publisher": "Isaiah Williams",
-  "description": "Synchronizes malware from various GitHub repositories.",
+  "description": "Starts the scheduled tasks that will synchronize the device with the management service.",
   "tags": [
     "Device"
   ],
   "iconUri": "https://www.powershellgallery.com/Content/Images/packageDefaultIcon.png",
   "targetOsType": "Windows",
   "runCommand": {
-    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./SyncGitHubMalware.ps1 -PerformActivity $true\"')]"
+    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./SyncDeviceMdm.ps1\"')]"
   }
 }

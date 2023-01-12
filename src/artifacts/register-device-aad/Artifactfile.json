@@ -53,6 +53,6 @@
     }
   },
   "runCommand": {
-    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./InstallProvisioningPackage.ps1 -KeyVaultClientId ', parameters('keyVaultClientId'), ' -KeyVaultName ', parameters('keyVaultName'), ' -KeyVaultSecret ', parameters('keyVaultSecret'), ' -KeyVaultTenant ', parameters('keyVaultTenant'), ' -NamePrefix ', parameters('namePrefix'), ' -Tenant ', parameters('tenant'), '\"')]"
+    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./RegisterDeviceAad.ps1 -KeyVaultClientId ', parameters('keyVaultClientId'), ' -KeyVaultName ', parameters('keyVaultName'), ' -KeyVaultSecret ', parameters('keyVaultSecret'), ' -KeyVaultTenant ', parameters('keyVaultTenant'), ' -NamePrefix ', parameters('namePrefix'), ' -Tenant ', parameters('tenant'), '\"')]"
   }
 }
