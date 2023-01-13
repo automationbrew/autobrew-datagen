@@ -20,4 +20,7 @@
 
 # Change Log
 
-## Upcoming release
+## 1.0.0 - January 2023
+
+* Initial release of artifacts to support data generation
+* Initial release of functions to support data generation

@@ -68,11 +68,11 @@ function Get-AbLabArtifactParameter
 
     $parameters = @()
 
-    if($Activity -eq 'remove-threat-expired')
+    if($Activity -eq 'remove-device-threat')
     {
         $parameters += @{'name' = "days"; 'value' = 15}
     }
-    elseif($Activity -eq 'start-defenderav-scan')
+    elseif($Activity -eq 'start-antivirus-scan')
     {
         $parameters += @{'name' = "scanType"; 'value' = 'FullScan'}
     }
