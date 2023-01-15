@@ -396,3 +396,9 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Azure Functions
+.git*
+.vscode
+local.settings.json
+test

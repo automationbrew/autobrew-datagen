@@ -97,7 +97,7 @@ try
     {
         throw "The device is not supported or is not registered with Microsoft Endpoint Manager."
     }
-    
+
     # Start the stop watch used to determine if the time elapsed exceeds five minutes.
     $stopWatch.Start()
 
