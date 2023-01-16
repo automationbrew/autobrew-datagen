@@ -66,7 +66,7 @@ try
             Write-Object "Loading the AutomationBrew PowerShell module..."
             Import-Module Ab
         } else {
-            Install-Module Ab
+            Install-Module -Name Ab -Force
         }
     }
 
