@@ -112,7 +112,7 @@ try
     $cloudCredential = New-Object System.Management.Automation.PSCredential($UserPrincipalName, $secureCloudPassword)
     $localCredential = New-Object System.Management.Automation.PSCredential($Username, $secureLocalPassword)
 
-    Invoke-DeviceRegistration -Credential $cloudCredential -ArgumentList @($localCredential, $ManagementUri, $Tenant, $UserPrincipalName)
+    Invoke-DeviceRegistration -Credential $localCredential -ArgumentList @($cloudCredential, $ManagementUri, $Tenant, $UserPrincipalName)
 }
 finally
 {
