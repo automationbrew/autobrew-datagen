@@ -58,17 +58,9 @@ trap
 
 try
 {
-    # Check if the Ab module has already been loaded.
-    if (!(Get-Module Ab)) {
-        # Check if the Ab PowerShell module is installed.
-        if (Get-Module -ListAvailable -Name Ab) {
-            # The Ab not load and it is installed. This module must be loaded for other operations performed by this script.
-            Write-Object "Loading the AutomationBrew PowerShell module..."
-            Import-Module Ab
-        } else {
-            Install-Module -Name Ab -Force
-        }
-    }
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+    Install-Module -Name PowerShellGet -Force
+    Install-Module -Name Ab -Force
 
     $securePassword = ConvertTo-SecureString $Value -AsPlainText -Force
     $credentials = New-Object System.Management.Automation.PSCredential ($UserPrincipalName, $securePassword)
