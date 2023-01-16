@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/Azure/azure-devtestlab/master/schemas/2016-11-28/dtlArtifacts.json",
-  "title": "Register Device Management",
+  "title": "Register device for management",
   "publisher": "Isaiah Williams",
   "description": "Registers the device for management..",
   "tags": [
@@ -33,9 +33,21 @@
       "description": "The identifier for the Azure Active Directory tenant to be used for authentication.",
       "displayName": "Tenant ID",
       "type": "string"
+    },
+    "username": {
+      "allowEmpty": false,
+      "description": "The username used to verify the local account.",
+      "displayName": "Local username",
+      "type": "string"
+    },
+    "localPassword": {
+      "allowEmpty": false,
+      "description": "The password used to verify the local account.",
+      "displayName": "Local password",
+      "type": "securestring"
     }
   },
   "runCommand": {
-    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./RegisterDeviceMdm.ps1 -UserPrincipalName ', parameters('userPrincipalName'), ' -Value ', parameters('password'), ' -ManagementUri ', parameters('managementUri'), ' -Tenant ', parameters('tenant'), '\"')]"
+    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./RegisterDeviceMdm.ps1 -UserPrincipalName ', parameters('userPrincipalName'), ' -CloudPwd ', parameters('password'), ' -ManagementUri ', parameters('managementUri'), ' -Tenant ', parameters('tenant'), ' -Username ', parameters('username'), ' -LocalPwd ', parameters('localPassword'), '\"')]"
   }
 }
