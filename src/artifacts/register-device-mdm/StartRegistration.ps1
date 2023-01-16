@@ -110,7 +110,7 @@ try
     $secureLocalPassword = ConvertTo-SecureString $LocalPwd -AsPlainText -Force
 
     $cloudCredential = New-Object System.Management.Automation.PSCredential($UserPrincipalName, $secureCloudPassword)
-    $localCredential = New-Object System.Management.Automation.PSCredential($Username, $secureLocalPassword)
+    $localCredential = New-Object System.Management.Automation.PSCredential("$env:COMPUTERNAME\$Username", $secureLocalPassword)
 
     Invoke-DeviceRegistration -Credential $localCredential -ArgumentList @($cloudCredential, $ManagementUri, $Tenant, $UserPrincipalName)
 }
