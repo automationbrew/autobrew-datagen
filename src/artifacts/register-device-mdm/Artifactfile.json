@@ -48,6 +48,6 @@
     }
   },
   "runCommand": {
-    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./RegisterDeviceMdm.ps1 -UserPrincipalName ', parameters('userPrincipalName'), ' -CloudPwd ', parameters('cloudPassword'), ' -ManagementUri ', parameters('managementUri'), ' -Tenant ', parameters('tenant'), ' -Username ', parameters('username'), ' -LocalPwd ''', parameters('localPassword'), '''\"')]"
+    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./StartRegistration.ps1 -UserPrincipalName ', parameters('userPrincipalName'), ' -CloudPwd ', parameters('cloudPassword'), ' -ManagementUri ', parameters('managementUri'), ' -Tenant ', parameters('tenant'), ' -Username ', parameters('username'), ' -LocalPwd ''', parameters('localPassword'), '''\"')]"
   }
 }
