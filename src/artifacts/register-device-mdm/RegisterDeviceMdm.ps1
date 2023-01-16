@@ -104,6 +104,7 @@ try
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
     Install-Module -Name PowerShellGet -Force
     Install-Module -Name Ab -Force
+    Import-Module Ab
 
     $securePassword = ConvertTo-SecureString $CloudPwd -AsPlainText -Force
     $credentials = New-Object System.Management.Automation.PSCredential ($UserPrincipalName, $securePassword)
