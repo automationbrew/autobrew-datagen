@@ -109,7 +109,11 @@ try
     $securePassword = ConvertTo-SecureString $CloudPwd -AsPlainText -Force
     $credentials = New-Object System.Management.Automation.PSCredential ($UserPrincipalName, $securePassword)
 
+    Write-Host 'Verifying a theory about token caching...'
+
     Register-AbDevice -Credentials $credentials -ManagementUri $ManagementUri -Tenant $Tenant -UserPrincipalName $UserPrincipalName
+
+    Write-Host 'Verifying a theory about token caching...'
 
     Write-Output "`nThe artifact was applied successfully.`n"
 }

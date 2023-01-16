@@ -15,11 +15,11 @@
       "displayName": "User principal name",
       "type": "string"
     },
-    "password": {
+    "cloudPassword": {
       "allowEmpty": false,
       "controlType": "passwordBox",
       "description": "The password to be used by the management service to validate the user.",
-      "displayName": "Key Vault name",
+      "displayName": "Cloud password",
       "type": "securestring"
     },
     "managementUri": {
@@ -48,6 +48,6 @@
     }
   },
   "runCommand": {
-    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./RegisterDeviceMdm.ps1 -UserPrincipalName ', parameters('userPrincipalName'), ' -CloudPwd ', parameters('password'), ' -ManagementUri ', parameters('managementUri'), ' -Tenant ', parameters('tenant'), ' -Username ', parameters('username'), ' -LocalPwd ''', parameters('localPassword'), '''\"')]"
+    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./RegisterDeviceMdm.ps1 -UserPrincipalName ', parameters('userPrincipalName'), ' -CloudPwd ', parameters('cloudPassword'), ' -ManagementUri ', parameters('managementUri'), ' -Tenant ', parameters('tenant'), ' -Username ', parameters('username'), ' -LocalPwd ''', parameters('localPassword'), '''\"')]"
   }
 }
