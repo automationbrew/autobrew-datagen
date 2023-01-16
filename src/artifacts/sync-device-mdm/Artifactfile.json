@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/Azure/azure-devtestlab/master/schemas/2016-11-28/dtlArtifacts.json",
-  "title": "Device MDM sync",
+  "title": "Sync device with management service",
   "publisher": "Isaiah Williams",
   "description": "Starts the scheduled tasks that will synchronize the device with the management service.",
   "tags": [
