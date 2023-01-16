@@ -72,6 +72,11 @@ public static extern bool LogonUser(
 
 try
 {
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+    Install-Module -Name PowerShellGet -Force
+    Install-Module -Name Ab -Force
+    Import-Module Ab
+
     $context = $null
     $tokenHandle = [IntPtr]::Zero
 
@@ -100,11 +105,6 @@ try
 
     # Impersonates the local user for the remainder of the script.
     $context = $newIdentity.Impersonate()
-
-    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
-    Install-Module -Name PowerShellGet -Force
-    Install-Module -Name Ab -Force
-    Import-Module Ab
 
     $securePassword = ConvertTo-SecureString $CloudPwd -AsPlainText -Force
     $credentials = New-Object System.Management.Automation.PSCredential ($UserPrincipalName, $securePassword)
