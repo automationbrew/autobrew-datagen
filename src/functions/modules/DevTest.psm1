@@ -1,205 +1,91 @@
-function Get-DeviceActivity
+function Invoke-DevTestArtifact
 {
     [CmdletBinding()]
     param (
-        [parameter(HelpMessage = 'The environment that contains the resources.', Mandatory = $true)]
-        $Environment
+        [Parameter(HelpMessage= "The name for artifact to be applied to the virtual machine.", Mandatory = $true)]
+        [string]$ArtifactName,
+
+        [Parameter(HelpMessage= "The name for the instance of Azure DevTest Lab.", Mandatory = $true)]
+        [string]$DevTestLabName,
+
+        [Parameter(HelpMessage= "The name for the repository where the artifact is stored.", Mandatory = $true)]
+        [string]$RepositoryName,
+
+        [Parameter(HelpMessage= "The identifier for the Microsoft Azure subscription.", Mandatory = $true)]
+        [string]$SubscriptionId,
+
+        [Parameter(HelpMessage= "The name for the virtual machine where the artifact should be applied.", Mandatory = $true)]
+        [string]$VirtualMachineName,
+
+        [Parameter(ValueFromRemainingArguments = $true)]
+        $Parameters
     )
 
-    Write-Verbose "Begin processing lab activites for the $($Environment.Name) environment"
+    $resourceGroupName = (Get-AzResource -ResourceType 'Microsoft.DevTestLab/labs' | Where-Object { $_.Name -eq $DevTestLabName}).ResourceGroupName
 
-    $output = @()
-    
-    $virtualMachines = Get-AzResource -ResourceGroupName $Environment.ExtendedProperties.ResourceGroupName -ResourceType 'Microsoft.DevTestLab/labs/virtualMachines' -Tag @{EnvironmentName = $Environment.Name}
-
-    foreach($virtualMachine in $virtualMachines)
-    {
-        Write-Verbose "Getting activities for the $($virtualMachine.ResourceId) virtual machine"
-
-        $output += [PSCustomObject]@{
-            Activity = Get-VmActivity -Tags $virtualMachine.Tags
-            Category = 'Device'
-            Resource = Get-VmResource -ResourceId $virtualMachine.ResourceId
-        }
+    if($null -eq $resourceGroupName) {
+        throw "Unable to find $DevTestLabName in subscription $SubscriptionId"
     }
 
-    return $output
-}
+    $repository = Get-AzResource -ResourceGroupName $resourceGroupName `
+        -ApiVersion 2016-05-15 `
+        -ResourceName $DevTestLabName `
+        -ResourceType 'Microsoft.DevTestLab/labs/artifactsources' `
+        | Where-Object { $RepositoryName -in ($_.Name, $_.Properties.displayName) } `
+        | Select-Object -First 1
 
-function Get-DeviceArtifact
-{
-    [CmdletBinding()]
-    param (
-        [parameter(HelpMessage = 'The activity to be performed.', Mandatory = $true)]
-        [string]$Activity,
+    if($null -eq $repository) {
+        throw "Unable to find $RepositoryName in lab $DevTestLabName"
+    }
 
-        [parameter(HelpMessage = 'The resource for the activity to be performed.', Mandatory = $true)]
-        $Resource
-    )
-    
-    $environment = Get-AbEnvironment -Name $Resource.EnvironmentName
+    $template = Get-AzResource -ResourceGroupName $ResourceGroupName `
+        -ApiVersion 2016-05-15 `
+        -ResourceName $DevTestLabName `
+        -ResourceType 'Microsoft.DevTestLab/labs/artifactsources' `
+        | Where-Object { $RepositoryName -in ($_.Name, $_.Properties.displayName) } `
+        | Select-Object -First 1
 
-    $labName = $environment.ExtendedProperties.DevTestLabName
-    $resourceGroupName = $environment.ExtendedProperties.ResourceGroupName
-    $subscriptionId = $environment.ExtendedProperties.SubscriptionId
+    if($null -eq $template) {
+        throw "Unable to find $ArtifactName in lab $DevTestLabName"
+    }
+
+    $virtualMachineId = '/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.DevTestLab/labs/{2}/virtualmachines/{3}' `
+        -f $SubscriptionId, $resourceGroupName, $DevTestLabName, $VirtualMachineName
+
+    $virtualMachine = Get-AzResource -ResourceId $virtualMachineId
+
+    if($null -eq $virtualMachine) {
+        throw "Unable to find $VirtualMachineName in lab $DevTestLabName"
+    }
 
     $artifactId = '/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.DevTestLab/labs/{2}/artifactSources/{3}/artifacts/{4}' `
-        -f $subscriptionId, $resourceGroupName, $labName, 'automationbrew', $Activity
+        -f $SubscriptionId, $resourceGroupName, $DevTestLabName, $repository.Name, $template.Name
 
-    return @{
-        artifactId = $artifactId
-        parameters = Get-DeviceArtifactParameter -Activity $Activity -Resource $Resource
-    }
-}
+    $artifactParameters = @()
 
-function Get-DeviceArtifactParameter
-{
-    [CmdletBinding()]
-    param (
-        [parameter(HelpMessage = 'The activity to be performed.', Mandatory = $true)]
-        [string]$Activity,
-
-        [parameter(HelpMessage = 'The resource for the activity to be performed.', Mandatory = $true)]
-        $Resource
-    )
-
-    $parameters = @()
-
-    if($Activity -eq 'remove-device-threat')
-    {
-        $parameters += @{'name' = "days"; 'value' = 15}
-    }
-    elseif($Activity -eq 'start-antivirus-scan')
-    {
-        $parameters += @{'name' = "scanType"; 'value' = 'FullScan'}
-    }
-    elseif($Activity -eq 'sync-device-aad')
-    {
-        $parameters += Get-DeviceUserCredential -Resource $Resource
-    }
-
-    return $parameters
-}
-
-function Get-DeviceUserCredential
-{
-    [CmdletBinding()]
-    param (
-        [parameter(HelpMessage = 'The resource for the activity to be performed.', Mandatory = $true)]
-        $Resource
-    )    
-
-    $environment = Get-AbEnvironment -Name $Resource.EnvironmentName
-    $refreshToken = Get-AzKeyVaultSecret -SecretName $environment.Tenant -VaultName $environment.ExtendedProperties.KeyVaultName
-
-    $graphToken = New-AbAccessToken -ApplicationId $environment.ApplicationId -RefreshToken $refreshToken.SecretValue -Scopes 'https://graph.microsoft.com/.default' -Tenant $Resource.Tenant
-    $secureToken = ConvertTo-SecureString -String $graphToken.AccessToken -AsPlainText
-
-    $deviceRequest = '{0}/beta/deviceManagement/managedDevices?$filter=deviceName eq %27{1}%27&Select=deviceName%2Cid' -f $environment.MicrosoftGraphEndpoint, $Resource.ComputerName
-    $device = (Invoke-RestMethod -Authentication Bearer -Method GET -Token $secureToken -Uri $deviceRequest).Value
-
-    if($null -eq $device)
-    {
-        throw "$($Resource.ComputeId) with the computer name $($Resource.ComputerName) does not have a corresponding managed device managed by Microsoft Endpoint Manager."
-    }
-
-    $userRequest = '{0}/beta/deviceManagement/managedDevices/{1}/users' -f $environment.MicrosoftGraphEndpoint, $device.Id
-    $user = (Invoke-RestMethod -Authentication Bearer -Method GET -Token $secureToken -Uri $userRequest).Value
-
-    if($null -eq $user)
-    {
-        throw "$($Resource.ResourceId) with the computer name $($Resource.ComputerName) does not have a user assigned within Microsoft Endpoint Manager."
-    }
-
-    $password = New-AbRandomPassword -Length 24 -NumberOfNonAlphanumericCharacters 6
-    [string]$plainText = ConvertFrom-SecureString -SecureString $password -AsPlainText
-
-    $passwordRequest = '{0}/beta/users/{1}' -f $environment.MicrosoftGraphEndpoint, $user.Id
-    $passwordPayload = "
-    {
-        'passwordProfile':
-        {
-            'forceChangePasswordNextSignIn':false,
-            'password': '$plainText'
+    $Parameters | ForEach-Object {
+        if ($_ -match '^-param_(.*)') {
+            $name = $_.TrimStart('^-param_')
+        } elseif ( $name ) {
+            $artifactParameters += @{ "name" = "$name"; "value" = "$_" }
+            $name = $null #reset name variable
         }
     }
-    "
 
-    Invoke-RestMethod -Authentication Bearer -Body $passwordPayload -ContentType 'application/json' -Method Patch -Token $secureToken -Uri $passwordRequest
-    Start-Sleep -Seconds 15
-
-    $parameters = @()
-
-    $parameters += @{'name' = 'username'; 'value' = $user.UserPrincipalName}
-    $parameters += @{'name' = 'password'; 'value' = $plainText}
-
-    return $parameters;
-}
-
-function Get-VmActivity
-{
-    [CmdletBinding()]
-    param (
-        [parameter(HelpMessage = 'The hashtable of tags for the DevTest Lab virtual machine in Microsoft Azure.', Mandatory = $true)]
-        $Tags
-    )
-    
-    $activity = $Tags['Daily']
-    
-    if((Get-Date).DayOfWeek -eq 'Tuesday')
-    {
-        $activity = $activity, $Tags['Weekly'] -Join ','
+    $params = @{
+        artifacts = @(
+            @{
+                artifactId = $artifactId
+                parameters = $artifactParameters
+            }
+        )
     }
 
-    $calculatedDate = (1..21 | ForEach-Object {([datetime](Get-Date).ToString('MM/01/yyyy')).AddDays($_) | Where-Object {$_.DayOfWeek -eq 'Wednesday'}})[1]
+   $status = Invoke-AzResourceAction -Parameters $params -ResourceId $virtualMachine.ResourceId -Action "applyArtifacts" -ApiVersion 2016-05-15 -Force
 
-    if((Get-Date).ToString('MM/dd/yyyy') -eq $calculatedDate.ToString('MM/dd/yyyy'))
-    {
-        $activity = $activity, $Tags['Monthly'] -Join ','
-    }
-
-    return $activity
-}
-
-function Get-VmResource
-{
-    [CmdletBinding()]
-    param (
-        [parameter(HelpMessage = 'The identifier for the DevTest Lab virtual machine in Microsoft Azure.', Mandatory = $true)]
-        [string]$ResourceId
-    )
-
-    $azResource = Get-AzResource -ExpandProperties -ResourceId $ResourceId
-    $azInstanceViewPath = '{0}?$expand=instanceView&api-version=2021-11-01' -f $azResource.Properties.ComputeId
-
-    $instanceViewResponse = Invoke-AzRestMethod -Path $azInstanceViewPath -Method GET
-    $instanceView = ConvertFrom-Json $instanceViewResponse.Content
-
-    $resource = [PSCustomObject]@{
-        ComputeId = $azResource.Properties.ComputeId 
-        ComputerName = $instanceView.Properties.InstanceView.ComputerName
-        EnvironmentName = $azResource.Tags['EnvironmentName']
-        PowerState = $azResource.Properties.LastKnownPowerState 
-        ResourceId = $azResource.ResourceId
-        Tenant = $azResource.Tags['Tenant']
-    }
-
-    return ConvertTo-Json -InputObject $resource
-}
-
-function Invoke-DeviceArtifact
-{
-    [CmdletBinding()]
-    param (
-        [parameter(HelpMessage = 'Provides contextal information to determine what artifacts should be invoked.', Mandatory = $true)]
-        $Context
-    )
-
-    foreach($item in $Context.Activity.Split(','))
-    {
-        $artifact  = @()
-        $artifact += Get-DeviceArtifact -Activity $item -Resource $Context.Resource 
-
-        Invoke-AzResourceAction -Parameters  @{artifacts = $artifact} -ResourceId $Context.Resource.ResourceId -Action 'applyArtifacts' -ApiVersion '2018-09-15' -Force
+    if ($status.Status -eq 'Succeeded') {
+        Write-Output "##[section] Successfully applied artifact: $ArtifactName to $VirtualMachineName"
+    } else {
+        Write-Error "##[error]Failed to apply artifact: $ArtifactName to $VirtualMachineName"
     }
 }
