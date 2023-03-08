@@ -20,3 +20,46 @@ if ($env:MSI_SECRET) {
 # Enable-AzureRmAlias
 
 # You can also define functions or aliases that can be referenced in any of your PowerShell functions.
+
+Import-Module Ab
+
+$key = ConvertTo-SecureString -String $env:CosmosDbKey -AsPlainText
+$context = New-CosmosDbContext -Account $env:CosmosDbAccount -Database 'autobrew' -Key $key
+
+$query = @"
+    SELECT 
+        c.activeDirectoryAuthority,
+        c.applicationId,
+        c.devTestLabName,
+        c.keyVaultName,
+        c.microsoftGraphEndpoint,
+        c.microsoftPartnerCenterEndpoint,
+        c.name,
+        c.resourceGroupName,
+        c.subscriptionId,
+        c.tenant 
+    FROM 
+        configurations c 
+    WHERE 
+        c.configurationType = 'environment'
+"@
+
+$documents = Get-CosmosDbDocument -Context $context -CollectionId 'configurations' -Query $query -QueryEnableCrossPartition $true
+
+foreach($item in $documents)
+{
+    $splat = @{}
+
+    $splat['ActiveDirectoryAuthority'] = $item.ActiveDirectoryAuthority
+    $splat['ApplicationId'] = $item.ApplicationId
+    $splat['DevTestLabName'] = $item.DevTestLabName
+    $splat['KeyVaultName'] = $item.KeyVaultName
+    $splat['MicrosoftGraphEndpoint'] = $item.MicrosoftGraphEndpoint
+    $splat['MicrosoftPartnerCenterEndpoint'] = $item.MicrosoftPartnerCenterEndpoint
+    $splat['Name'] = $item.Name
+    $splat['ResourceGroupName'] = $item.ResourceGroupName
+    $splat['SubscriptionId'] = $item.SubscriptionId
+    $splat['Tenant'] = $item.Tenant
+
+    Add-AbEnvironment @splat
+}

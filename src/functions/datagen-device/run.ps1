@@ -2,6 +2,11 @@ param($Context)
 
 foreach($item in $Context.Activity.Split(','))
 {
+    if([string]::IsNullOrEmpty($item)) {
+        Write-Verbose -Message 'The activity was either blank or null, so we are moving to the next iteration.'
+        continue
+    }
+
     $environment = Get-AbEnvironment -Name $Context.Environment
     $parameters = @{}
 
