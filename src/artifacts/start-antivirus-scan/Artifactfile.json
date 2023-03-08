@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/Azure/azure-devtestlab/master/schemas/2016-11-28/dtlArtifacts.json",
-  "title": "Start Defender Antivirus Scan",
+  "title": "Start antivirus scan",
   "publisher": "Isaiah Williams",
   "description": "Starts the specified type of scan for malware and threats using Microsoft Defender Antivirus.",
   "tags": [
@@ -21,6 +21,6 @@
     }
   },
   "runCommand": {
-    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./StartDefenderAvScan.ps1 -ScanType ', parameters('scanType'), '\"')]"
+    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./StartAntivirusScan.ps1 -ScanType ', parameters('scanType'), '\"')]"
   }
 }
