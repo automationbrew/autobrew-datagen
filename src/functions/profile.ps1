@@ -22,6 +22,7 @@ if ($env:MSI_SECRET) {
 # You can also define functions or aliases that can be referenced in any of your PowerShell functions.
 
 Import-Module Ab
+Import-Module DevTest
 
 $key = ConvertTo-SecureString -String $env:CosmosDbKey -AsPlainText
 $context = New-CosmosDbContext -Account $env:CosmosDbAccount -Database 'autobrew' -Key $key
